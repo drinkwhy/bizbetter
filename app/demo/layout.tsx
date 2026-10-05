@@ -1,0 +1,2 @@
+import Link from 'next/link';
+export default function DemoLayout({children}:{children:React.ReactNode}){return <div className="space-y-5"><div role="alert" className="border-2 border-amber-500 bg-amber-950 p-5 font-bold">DEMO DATA — NOT REAL BUSINESS INFORMATION</div><p>This isolated sales/development sandbox never writes to the real evidence repository.</p><Link href="/" className="text-emerald-400 underline">Return to real workspace</Link>{children}</div>;}

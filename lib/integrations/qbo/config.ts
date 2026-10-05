@@ -1,0 +1,6 @@
+export type QboEnvironment='sandbox'|'production';
+export function qboConfig(){const clientId=process.env.BIZBETTER_QBO_CLIENT_ID,clientSecret=process.env.BIZBETTER_QBO_CLIENT_SECRET,redirectUri=process.env.BIZBETTER_QBO_REDIRECT_URI;const environment:QboEnvironment=process.env.BIZBETTER_QBO_ENV==='production'?'production':'sandbox';if(!clientId||!clientSecret||!redirectUri)throw new Error('QuickBooks OAuth app settings are incomplete. Add client ID, secret and exact callback URI to local server configuration.');const redirect=new URL(redirectUri);if(!['http:','https:'].includes(redirect.protocol)||redirect.username||redirect.password||redirect.hash)throw new Error('Invalid QuickBooks callback URI.');if(environment==='production'&&redirect.protocol!=='https:')throw new Error('QuickBooks production OAuth requires an HTTPS callback.');return {clientId,clientSecret,redirectUri:redirect.toString(),environment};}
+export const authorizeEndpoint='https://appcenter.intuit.com/connect/oauth2';
+export const tokenEndpoint='https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer';
+export const revokeEndpoint='https://developer.api.intuit.com/v2/oauth2/tokens/revoke';
+export function apiBase(environment:QboEnvironment){return environment==='sandbox'?'https://sandbox-quickbooks.api.intuit.com':'https://quickbooks.api.intuit.com';}

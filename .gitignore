@@ -1,0 +1,31 @@
+node_modules/
+.next/
+out/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+*.log
+prisma/*.db
+prisma/*.db-*
+prisma/*.sqlite*
+separation-manifest.json
+
+# Local browser verification artifacts
+.playwright-cli/
+output/playwright/
+
+# Private locally retrieved financial evidence
+.bizbetter-data/
+
+node_modules/
+.next/
+.env
+.env.*
+!.env.example
+.bizbetter-data/
+*.log
+*.db
+*.db-*
+*.sqlite
+*.sqlite3

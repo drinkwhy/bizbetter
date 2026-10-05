@@ -1,0 +1,2 @@
+import { NextRequest } from 'next/server';
+export function assertLocal(req:NextRequest,write=false){const host=req.headers.get('host')||'';const hostname=host.split(':')[0];if(!['127.0.0.1','localhost'].includes(hostname))throw new Error('This workspace is local-only; hosted use requires authentication.');if(write){const origin=req.headers.get('origin');if(origin&&origin!=='http://'+host)throw new Error('Invalid request origin.');}}

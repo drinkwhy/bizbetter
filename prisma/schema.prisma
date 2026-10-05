@@ -1,0 +1,296 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model BusinessProfile {
+  id                    String            @id @default(cuid())
+  name                  String
+  industry              String            @default("HVAC")
+  employeeCount         Int?
+  approxAnnualRevenue   Float?
+  location              String            @default("")
+  primaryServices       String            // Comma-separated or JSON
+  avgJobValue           Float?
+  jobsPerMonth          Int?
+  notes                 String?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  financialPeriods      FinancialPeriod[]
+  jobRecords            JobRecord[]
+  profitLeaks           ProfitLeak[]
+  opportunities         Opportunity[]
+  moneyFoundItems       MoneyFoundItem[]
+  recommendations       Recommendation[]
+  decisionRecords       DecisionRecord[]
+  integrations          Integration[]
+  auditLogs             ImportAuditLog[]
+}
+
+model FinancialPeriod {
+  id                    String            @id @default(cuid())
+  businessId            String
+  periodName            String            // e.g., "2024-Q3", "2024-09"
+  startDate             DateTime
+  endDate               DateTime
+  revenue               Float
+  totalExpenses         Float
+  cogs                  Float
+  laborExpense          Float
+  materialExpense       Float
+  marketingExpense      Float
+  vehicleExpense        Float
+  overheadExpense       Float
+  softwareExpense       Float
+  discountsGiven        Float             @default(0)
+  refunds               Float             @default(0)
+  grossProfit           Float
+  netProfit             Float
+  netMargin             Float             // percentage
+  jobsCompleted         Int
+  averageJobValue       Float
+
+  business              BusinessProfile   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt             DateTime          @default(now())
+}
+
+model JobRecord {
+  id                    String            @id @default(cuid())
+  businessId            String
+  jobNumber             String
+  customerName          String
+  serviceType           String            // "AC Installation", "Furnace Tune-up", "Emergency Repair", etc.
+  invoiceAmount         Float
+  laborCost             Float
+  laborHours            Float
+  materialCost          Float
+  marginPercent         Float
+  technicianName        String
+  isCallback            Boolean           @default(false)
+  completedAt           DateTime
+
+  business              BusinessProfile   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt             DateTime          @default(now())
+}
+
+model ProfitLeak {
+  id                    String            @id @default(cuid())
+  businessId            String
+  title                 String
+  category              String            // LABOR, MATERIALS, PRICING, MARKETING, OPERATIONS, SOFTWARE, OVERHEAD
+  description           String
+  evidence              String            // JSON encoded metric proof
+  financialImpactAnnual Float
+  financialImpactMonthly Float
+  confidence            String            // HIGH, MEDIUM, LOW
+  severity              String            // CRITICAL, WARNING, OPPORTUNITY
+  recommendedInvestigation String
+  status                String            @default("ACTIVE") // ACTIVE, INVESTIGATING, RESOLVED, DISMISSED
+
+  business              BusinessProfile   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  recommendations       Recommendation[]
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+}
+
+model Opportunity {
+  id                    String            @id @default(cuid())
+  businessId            String
+  title                 String
+  category              String
+  currentSituation      String
+  proposedImprovement   String
+  monthlyImpact         Float
+  annualImpact          Float
+  confidence            String            // HIGH, MEDIUM, LOW
+  evidence              String            // JSON or text proof
+  assumptions           String
+  status                String            @default("ACTIVE")
+
+  business              BusinessProfile   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  recommendations       Recommendation[]
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+}
+
+model MoneyFoundItem {
+  id                    String            @id @default(cuid())
+  businessId            String
+  title                 String
+  category              String
+  estimatedAnnualImpact Float
+  status                String            @default("POTENTIAL") // POTENTIAL, VALIDATED, IMPLEMENTED, REALIZED
+  overlapGroup          String?           // to prevent double-counting overlapping opportunities
+  assumptions           String
+  notes                 String?
+
+  business              BusinessProfile   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+}
+
+model Recommendation {
+  id                    String            @id @default(cuid())
+  businessId            String
+  leakId                String?
+  opportunityId         String?
+  action                String
+  reason                String
+  supportingEvidence    String
+  expectedImpactMonthly Float
+  expectedImpactAnnual  Float
+  difficulty            String            // EASY, MEDIUM, HARD
+  costToImplement       Float             @default(0)
+  priority              String            // URGENT, HIGH, MEDIUM, LOW
+  responsiblePerson     String            @default("Business Owner")
+  deadline              DateTime?
+  status                String            @default("PROPOSED") // PROPOSED, ACCEPTED, MODIFIED, REJECTED, IN_PROGRESS, COMPLETED
+
+  business              BusinessProfile   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  leak                  ProfitLeak?       @relation(fields: [leakId], references: [id])
+  opportunity           Opportunity?      @relation(fields: [opportunityId], references: [id])
+  decisionRecords       DecisionRecord[]
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+}
+
+model DecisionRecord {
+  id                    String            @id @default(cuid())
+  businessId            String
+  recommendationId      String?
+  problemDetected       String
+  recommendationSummary String
+  evidenceSnapshot      String            // JSON metrics at decision time
+  decisionTaken         String            // ACCEPTED, MODIFIED, REJECTED
+  decisionNotes         String
+  decidedAt             DateTime          @default(now())
+  expectedOutcome       String
+  actualOutcome         String?
+  timeUntilResultDays   Int?
+  financialImpactActual Float?
+  outcomeAssessment     String            @default("PENDING") // PENDING, SUCCESS, PARTIAL_SUCCESS, FAILURE, UNCERTAIN
+  learnings             String?
+
+  business              BusinessProfile   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  recommendation        Recommendation?   @relation(fields: [recommendationId], references: [id])
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+}
+
+model Integration {
+  id                    String            @id @default(cuid())
+  businessId            String
+  provider              String            // QUICKBOOKS, STRIPE, SERVICETITAN, GUSTO, GOOGLE_ADS
+  name                  String
+  category              String            // ACCOUNTING, PAYMENTS, CRM, PAYROLL, MARKETING
+  status                String            @default("DISCONNECTED") // CONNECTED, DISCONNECTED, ERROR, SYNCING
+  lastSyncAt            DateTime?
+  syncFrequency         String            @default("Nightly")
+  recordsSynced         Int               @default(0)
+  credentialsConfigured Boolean           @default(false)
+  notes                 String?
+
+  business              BusinessProfile   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+}
+
+model ImportAuditLog {
+  id                    String            @id @default(cuid())
+  businessId            String
+  fileName              String
+  fileType              String            // CSV, XLSX, QUICKBOOKS_EXPORT
+  recordsImported       Int
+  warnings              String?
+  importedAt            DateTime          @default(now())
+
+  business              BusinessProfile   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+}
+
+
+model OAuthState {
+  stateHash   String   @id
+  environment String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([expiresAt])
+}
+
+model QboConnection {
+  id                       String   @id @default(cuid())
+  businessId               String   @unique
+  realmId                  String   @unique
+  companyName              String
+  environment              String
+  scopes                   String
+  accessTokenCiphertext    String
+  refreshTokenCiphertext   String
+  accessTokenExpiresAt     DateTime
+  refreshTokenExpiresAt    DateTime
+  status                   String   @default("CONNECTED")
+  connectedAt              DateTime @default(now())
+  disconnectedAt           DateTime?
+  lastAttemptAt            DateTime?
+  lastSuccessfulSyncAt     DateTime?
+  lastSyncStatus           String   @default("NEVER")
+  lastSyncErrorCode        String?
+  lastRecordsCreated       Int      @default(0)
+  lastRecordsUpdated       Int      @default(0)
+  lastRecordsRejected      Int      @default(0)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  syncRuns                 QboSyncRun[]
+  sourceRecords            QboSourceRecord[]
+
+  @@index([status, lastAttemptAt])
+}
+
+model QboSyncRun {
+  id               String   @id
+  connectionId     String
+  status           String
+  startedAt        DateTime @default(now())
+  finishedAt       DateTime?
+  historicalStart  DateTime
+  historicalEnd    DateTime
+  recordsCreated   Int      @default(0)
+  recordsUpdated   Int      @default(0)
+  recordsRejected  Int      @default(0)
+  checkpoint       String   @default("{}")
+  errorCode        String?
+  errorMessage     String?
+  connection       QboConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  sourceRecords    QboSourceRecord[]
+
+  @@index([connectionId, startedAt])
+  @@index([status, startedAt])
+}
+
+model QboSourceRecord {
+  id               String   @id
+  connectionId     String
+  syncRunId         String
+  entityName       String
+  providerRecordId String
+  lastUpdatedAt    DateTime?
+  transactionDate  DateTime?
+  amountMinor      BigInt?
+  currency         String?
+  rawCiphertext    String
+  sourceDigest     String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  connection       QboConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  syncRun          QboSyncRun @relation(fields: [syncRunId], references: [id], onDelete: Cascade)
+
+  @@unique([connectionId, entityName, providerRecordId])
+  @@index([connectionId, entityName, transactionDate])
+  @@index([syncRunId])
+  @@index([sourceDigest])
+}
