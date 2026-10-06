@@ -1,2 +1,5 @@
-import { EvidenceWorkspace } from '@/components/EvidenceWorkspace';
-export default function Page(){return <EvidenceWorkspace section='overview'/>;}
+import { MainExperience } from '@/components/MainExperience';
+
+export default function Page() {
+  return <MainExperience />;
+}
