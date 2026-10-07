@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
 
 const calls = new Map<string, number[]>();
 const cache = new Map<string, { at: number; value: unknown }>();
-const versions = { gateway: '1.0.0', prompt: '1.1.0', engine: 'financial-integrity-v1' };
+const versions = { gateway: '1.1.0', prompt: '1.1.0', engine: 'financial-integrity-v1' };
 
 export async function POST(req: NextRequest) {
   try {
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       }, { headers: { 'Cache-Control': 'no-store' } });
     }
 
-    const key = `${businessId}:${pack.fingerprint}:${body.query}:${depth}:${process.env.BIZBETTER_AI_PROVIDER || 'openai'}:${process.env.BIZBETTER_AI_MODEL || ''}:${process.env.BIZBETTER_AI_GROK_MODEL || ''}`;
+    const key = `${businessId}:${pack.fingerprint}:${body.query}:${depth}:${process.env.BIZBETTER_AI_PROVIDER || 'openai'}:${process.env.BIZBETTER_AI_MODEL || ''}:${process.env.BIZBETTER_AI_GROK_MODEL || ''}:${process.env.BIZBETTER_AI_GEMINI_MODEL || ''}`;
     const cached = cache.get(key);
     if (cached && now - cached.at < 10 * 60_000) {
       return NextResponse.json(cached.value, { headers: { 'Cache-Control': 'no-store', 'X-BizBetter-Cache': 'HIT' } });
