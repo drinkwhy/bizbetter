@@ -55,7 +55,8 @@ export function analyze(records:SourceRecord[],businessId:string){
  const histories=new Map<string,SourceRecord[]>();for(const r of usable){const key=[r.sourceSystem,r.metric,r.currency,r.decimals,r.basis,r.entityId||''].join('|');histories.set(key,[...(histories.get(key)||[]),r]);}
  const statistics:Array<Record<string,unknown>>=Array.from(histories.entries()).map(([series,rows])=>({series,...historicalTrend(rows)}));
  const series=Array.from(histories.entries()).filter(([,rows])=>rows.length>=12).slice(0,20);for(let i=0;i<series.length;i++)for(let j=i+1;j<series.length;j++){if(series[i][1][0].metric===series[j][1][0].metric)continue;statistics.push({series:series[i][0]+' vs '+series[j][0],...correlateSeries(series[i][1],series[j][1])});}
- return {message:findings.length?'Evidence-supported observations; recovery is not yet proven.':INSUFFICIENT,quality,findings,missing,statistics,analysesRun:runs};
+ const message=findings.length?'Evidence-supported observations; recovery is not yet proven.':usable.length===0?'Analysis blocked: confirm source completeness for your imported exports.':usable.length<records.length?'Analysis used confirmed records only. Confirm completeness for the remaining exports to include them.':'Analysis completed: no supported loss identified by the available checks. This does not establish that the business has no profit leaks.';
+ return {message,quality,findings,missing,statistics,analysesRun:usable.length?runs:[]};
 }
 export function validateBenchmark(b:Benchmark){if(!b||!/^https:\/\//.test(b.source)||!validDate(b.publishedAt)||!b.industry?.trim()||!b.companySize?.trim()||!b.geography?.trim()||!b.metricDefinition?.trim()||!Number.isFinite(b.value))throw new Error('Benchmark requires source, publication, applicability and metric definition.');return b;}
 export function guardedNarrative(claims:Array<{findingId:string;title:string;impactMinor:number|null}>,findings:Finding[]){

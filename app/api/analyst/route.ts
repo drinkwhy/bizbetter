@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         status: 'INSUFFICIENT_EVIDENCE', provider: 'DETERMINISTIC', model: null, depth,
         businessId, fingerprint: pack.fingerprint, versions,
-        answer: fallback(data.findings, data.missing), evidence: [],
+        answer: {...fallback(data.findings, data.missing),summary:data.message}, evidence: [],
       }, { headers: { 'Cache-Control': 'no-store' } });
     }
 
