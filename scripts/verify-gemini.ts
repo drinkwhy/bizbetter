@@ -29,6 +29,20 @@ async function main(){
   await assert.rejects(()=>callAIProvider(context,'FAST'),/incomplete/);
   globalThis.fetch=async()=>Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({...answer,summary:'Save $999999.'})}]}}]});
   await assert.rejects(()=>callAIProvider(context,'FAST'),/quantitative/);
+  let attempts=0;
+  globalThis.fetch=async(_url,options)=>{
+   attempts++;
+   const body=JSON.parse(String(options?.body));
+   if(attempts===2)assert.match(body.systemInstruction.parts[0].text,/qualitative explanations only/);
+   const response=attempts===1?{...answer,summary:'Save $999999.'}:answer;
+   return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(response)}]}}]});
+  };
+  assert.equal((await callAIProvider(context,'FAST'))?.value.summary,answer.summary);
+  assert.equal(attempts,2);
+  attempts=0;
+  globalThis.fetch=async()=>{attempts++;return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify({...answer,summary:'Save $999999.'})}]}}]});};
+  await assert.rejects(()=>callAIProvider(context,'FAST'),/quantitative/);
+  assert.equal(attempts,2,'retry must be bounded and must never accept the unsupported amount');
   process.env.BIZBETTER_AI_GEMINI_MODEL='../invalid';
   await assert.rejects(()=>callAIProvider(context,'FAST'),/model identifier/);
   console.log('PASS Gemini key isolation, missing-key fallback, JSON schema, response parsing, truncated output, quota/access errors and fabricated-amount rejection');

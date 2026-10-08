@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
 
 const calls = new Map<string, number[]>();
 const cache = new Map<string, { at: number; value: unknown }>();
-const versions = { gateway: '1.2.0', prompt: '1.1.0', engine: 'financial-integrity-v1' };
+const versions = { gateway: '1.3.0', prompt: '1.1.0', engine: 'financial-integrity-v1' };
 
 export async function POST(req: NextRequest) {
   try {
