@@ -4,6 +4,7 @@ import { OpportunityEngine } from '../lib/demo/engines/opportunity-engine';
 import { MoneyFoundLedger } from '../lib/demo/engines/money-found';
 import { DecisionTracker } from '../lib/demo/engines/decision-tracker';
 import { AIAnalystEngine } from '../lib/demo/engines/ai-analyst';
+import { GeminiAnalystEngine } from '../lib/demo/engines/gemini-analyst';
 import { CSVDataImporter } from '../lib/demo/engines/csv-importer';
 import { 
   DEMO_FINANCIALS, 
@@ -13,7 +14,7 @@ import {
   DEMO_DECISION_RECORDS 
 } from '../lib/demo-data';
 
-function runVerification() {
+async function runVerification() {
   console.log('--- STARTING BIZBETTER ENGINE VERIFICATION ---');
 
   // 1. Test Profit Leak Engine
@@ -73,10 +74,10 @@ function runVerification() {
     console.log(`  Pattern #${i + 1}: ${p.problemType} -> Success Rate: ${p.successRatePercent}% (+$${p.medianFinancialImpactAnnual.toLocaleString()})`);
   });
 
-  // 5. Test AI Analyst Engine
-  console.log('\n[5] Testing AIAnalystEngine...');
+  // 5. Test AI Analyst Engine (rule-based)
+  console.log('\n[5] Testing AIAnalystEngine (rule-based)...');
   const query = 'Why did profit drop last month?';
-  const analysis = AIAnalystEngine.analyze(query, {
+  const analysisCtx = {
     businessName: 'Apex Comfort Solutions',
     revenue: DEMO_FINANCIALS.revenue,
     grossProfit: DEMO_FINANCIALS.grossProfit,
@@ -91,7 +92,8 @@ function runVerification() {
     activeLeaks: DEMO_PROFIT_LEAKS,
     opportunities: DEMO_OPPORTUNITIES,
     recentDecisions: DEMO_DECISION_RECORDS
-  });
+  };
+  const analysis = AIAnalystEngine.analyze(query, analysisCtx);
   console.log(`AI Summary: ${analysis.summary}`);
   console.log(`Facts verified: ${analysis.facts.length}`);
   console.log(`Calculations verified: ${analysis.calculations.length}`);
@@ -112,7 +114,31 @@ function runVerification() {
     throw new Error('CSV Data Importer failed on sample template');
   }
 
-  console.log('\n>>> ALL 6 ENGINE VERIFICATION TESTS PASSED SUCCESSFULLY! <<<');
+  // 7. Optional live Gemini demo analyst (only when key is present)
+  console.log('\n[7] Testing GeminiAnalystEngine (live, optional)...');
+  const hasGeminiKey = !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY);
+  if (!hasGeminiKey) {
+    console.log('  Skipping live Gemini call (no GEMINI_API_KEY or GOOGLE_API_KEY set).');
+    console.log('  Set the key in .env to exercise the live path.');
+  } else {
+    try {
+      const geminiResult = await GeminiAnalystEngine.analyze(query, analysisCtx);
+      console.log(`  Gemini Summary: ${geminiResult.summary.slice(0, 180)}${geminiResult.summary.length > 180 ? '...' : ''}`);
+      console.log(`  Facts: ${geminiResult.facts.length} | Calculations: ${geminiResult.calculations.length} | Estimates: ${geminiResult.estimates.length} | Hypotheses: ${geminiResult.hypotheses.length}`);
+      if (!geminiResult.summary || geminiResult.facts.length === 0) {
+        throw new Error('Gemini returned an incomplete structured response');
+      }
+      console.log('  Live Gemini demo call succeeded.');
+    } catch (err) {
+      console.error('  Live Gemini call failed:', err instanceof Error ? err.message : err);
+      throw err; // fail the suite if the key is present but the call fails
+    }
+  }
+
+  console.log('\n>>> ALL ENGINE VERIFICATION TESTS PASSED SUCCESSFULLY! <<<');
 }
 
-runVerification();
+runVerification().catch((err) => {
+  console.error('\nVERIFICATION FAILED:', err instanceof Error ? err.message : err);
+  process.exit(1);
+});
