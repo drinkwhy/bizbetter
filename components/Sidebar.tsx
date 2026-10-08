@@ -28,7 +28,7 @@ const NAV_ITEMS = [
   { name: 'Results', href: '/results', icon: BarChart3 },
   { name: 'AI Analyst', href: '/analyst', icon: Bot, isNew: true },
   { name: 'Integrations & CSV', href: '/integrations', icon: Plug },
-  { name: 'Data Intake', href: '/data-intake', icon: Plug, isNew: true },
+  { name: 'Upload & analyze', href: '/data-intake', icon: Plug, isNew: true },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
