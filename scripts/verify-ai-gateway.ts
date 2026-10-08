@@ -12,3 +12,15 @@ const pkg=buildEvidence([record],[],'Analyze the uploaded record');const rendere
 const oversized=buildEvidence(Array.from({length:260},(_,i)=>({...record,id:`record-${i}`,sourceRecordId:`row-${i}`,value:4730000+i})),[],'Analyze recent records');assert.equal(oversized.items.length,250);assert.deepEqual(oversized.context.items,oversized.items);
 const deterministic=fallback([],['Provide complete dated source records.']);assert.match(deterministic.summary,/insufficient verified evidence/i);assert.equal(deterministic.hypotheses.length,0);
 console.log('PASS AI output schema, quantitative claim firewall, evidence ID resolution, PII/payload minimization, injection containment, evidence fingerprint invalidation, and no-key fallback');
+
+const formattedItems:Item[]=[{id:'CALC-FORMAT',kind:'CALCULATION',classification:'CALCULATION',title:'Accounting loss',value:1250,currency:'USD',period:'2026-09-01 to 2026-09-30',sources:['Books'],notes:[]},{id:'EVID-OTHER',kind:'SOURCE',classification:'FACT',title:'revenue',value:1,currency:'USD',sources:['Books'],notes:[]}];
+const formatted=(text:string,refs=['CALC-FORMAT']):Answer=>({summary:text,facts:[{text,evidenceIds:refs}],patterns:[],hypotheses:[],recommendations:[],additionalDataNeeded:[],confidence:'LOW',limitations:[],questionsForOwner:[]});
+assert.equal(validateAnswer(formatted('Loss is USD 1,250.00.'),formattedItems).facts.length,1);
+assert.equal(validateAnswer(formatted('As of 2026-09-30, loss is $1250.00. [CALC-FORMAT]'),formattedItems).facts.length,1);
+assert.throws(()=>validateAnswer(formatted('Save $999999.'),formattedItems),/quantitative/);
+assert.throws(()=>validateAnswer(formatted('Loss is €1250.'),formattedItems),/quantitative/);
+assert.throws(()=>validateAnswer(formatted('Loss is -1250.'),formattedItems),/quantitative/);
+assert.throws(()=>validateAnswer(formatted('Loss affects 1250 jobs.'),formattedItems),/quantitative/);
+assert.throws(()=>validateAnswer(formatted('Loss rose 1250%.'),formattedItems),/quantitative/);
+assert.throws(()=>validateAnswer(formatted('Loss is $1250.',['EVID-OTHER']),formattedItems),/quantitative/);
+console.log('PASS formatted amounts, ISO dates and claim-specific numeric evidence; no invented amounts, counts, signs, currencies or percentages');

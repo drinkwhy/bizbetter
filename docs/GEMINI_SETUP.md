@@ -5,7 +5,7 @@ Get an API key from https://aistudio.google.com/apikey. In the project's local `
 ```dotenv
 BIZBETTER_AI_PROVIDER=gemini
 GEMINI_API_KEY=your_key_here
-BIZBETTER_AI_GEMINI_MODEL=gemini-2.5-flash
+BIZBETTER_AI_GEMINI_MODEL=gemini-3.1-flash-lite
 ```
 
 Replace the existing provider setting rather than adding a duplicate. Keep the key server-side. Restart `pnpm dev`, select the business on AI Analyst, and choose Analyze my business.

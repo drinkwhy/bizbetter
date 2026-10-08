@@ -10,10 +10,11 @@ async function main(){
   assert.equal(configuredAIProvider(),'GEMINI');assert.equal(await callAIProvider(context,'FAST'),null);
   process.env.GEMINI_API_KEY='fictional-test-key';
   globalThis.fetch=async(url,options)=>{
-   assert.equal(String(url),'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent');
+   assert.equal(String(url),'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent');
    assert(!String(url).includes('fictional-test-key'));
    assert.equal(new Headers(options?.headers).get('x-goog-api-key'),'fictional-test-key');
    const body=JSON.parse(String(options?.body));
+   assert.equal(body.generationConfig.thinkingConfig,undefined);
    assert.equal(body.generationConfig.responseMimeType,'application/json');
    assert(body.generationConfig.responseJsonSchema.required.includes('facts'));
    assert.equal(JSON.parse(body.contents[0].parts[0].text).depth,'FAST');
