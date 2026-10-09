@@ -1,5 +1,12 @@
 import type { DatasetType } from '@/lib/evidence/model';
-import type { ColumnMapping } from '@/lib/intake/interpreter';
+
+/** Mapping suggestion returned by a source profile (Toast, Square, …). */
+export interface ColumnMappingHint {
+  targetField: string;
+  confidence: number;
+  reason: string;
+  confirmed: boolean;
+}
 
 /** One POS/source profile that can auto-detect and map common export formats. */
 export interface SourceProfile {
@@ -16,5 +23,5 @@ export interface SourceProfile {
     sourceColumn: string,
     dataset: DatasetType,
     headers: string[]
-  ) => Omit<ColumnMapping, 'sourceColumn'> | null;
+  ) => ColumnMappingHint | null;
 }
