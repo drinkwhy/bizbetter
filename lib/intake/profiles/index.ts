@@ -1,15 +1,14 @@
 import type { DatasetType } from '@/lib/evidence/model';
-import type { ColumnMapping } from '@/lib/intake/interpreter';
 import { toastProfile } from '@/lib/intake/profiles/toast';
-import type { SourceProfile } from '@/lib/intake/profiles/types';
+import type { ColumnMappingHint, SourceProfile } from '@/lib/intake/profiles/types';
 
 /**
  * Registered source profiles.
- * Add Square, Clover, Clover, etc. here later — highest detect() score wins.
+ * Add Square, Clover, etc. here later — highest detect() score wins.
  */
 export const SOURCE_PROFILES: SourceProfile[] = [
   toastProfile,
-  // Future: squareProfile, cloverProfile, squareProfile, ...
+  // Future: squareProfile, cloverProfile, ...
 ];
 
 export function detectSourceProfile(
@@ -42,7 +41,7 @@ export function mapWithProfiles(
   dataset: DatasetType,
   fileName: string,
   headers: string[]
-): ColumnMapping | null {
+): (ColumnMappingHint & { sourceColumn: string }) | null {
   const profile = detectSourceProfile(fileName, headers);
   if (!profile) return null;
   const hit = profile.mapColumn(sourceColumn, dataset, headers);
