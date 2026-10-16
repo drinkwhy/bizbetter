@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Settings, 
   Building2, 
@@ -19,11 +19,28 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState(() => store.getBusiness());
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
 
-  const handleSave = (e: React.FormEvent) => {
+  // Name and industry belong to the selected evidence workspace (saved on the server); the other fields are kept in this browser.
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  useEffect(() => {
+    const want = new URLSearchParams(window.location.search).get('businessId');
+    fetch('/api/intake/businesses', { cache: 'no-store' }).then((r) => r.json()).then((d) => {
+      const list = (d.businesses || []) as Array<{ id: string; name: string; industry?: string }>; const b = list.find((x) => x.id === want) || list[0]; if (!b) return;
+      setWorkspaceId(b.id); let extra = {}; try { extra = JSON.parse(localStorage.getItem('bizbetter_profile_extra_' + b.id) || '{}'); } catch { extra = {}; }
+      setProfile((p) => ({ ...p, ...extra, name: b.name, industry: b.industry || '' }));
+    }).catch(() => setSavedMessage('Could not load the business workspace.'));
+  }, []);
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    store.updateBusiness(profile);
-    setSavedMessage('Business profile updated successfully!');
-    setTimeout(() => setSavedMessage(null), 3000);
+    try {
+      store.updateBusiness(profile);
+      if (workspaceId) {
+        const r = await fetch('/api/intake/businesses', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ businessId: workspaceId, name: profile.name, industry: profile.industry }) });
+        const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Save failed.');
+        const { name: _n, industry: _i, ...extra } = profile; localStorage.setItem('bizbetter_profile_extra_' + workspaceId, JSON.stringify(extra));
+      }
+      setSavedMessage('Business profile saved: name and industry on the workspace, other details in this browser.');
+    } catch (err) { setSavedMessage(err instanceof Error ? err.message : 'Save failed.'); }
+    setTimeout(() => setSavedMessage(null), 4000);
   };
 
   const handleResetToClean = () => {

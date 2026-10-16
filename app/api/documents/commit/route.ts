@@ -31,5 +31,5 @@ export async function POST(req: NextRequest) {
     Object.assign(doc, { kind, status: 'COMMITTED', importId, committedAt: new Date().toISOString(), recordsCreated: result.records.length });
     await saveDocument(doc);
     return NextResponse.json({ document: doc, records: result.records.length, rows: result.normalized.length, warnings: result.warnings });
-  } catch (e) { return NextResponse.json({ error: e instanceof Error ? e.message : 'Import was not committed.' }, { status: 400 }); }
+  } catch (e) { const missing = e instanceof Error && /ENOENT/.test(e.message); return NextResponse.json({ error: missing ? 'Unknown document for this workspace.' : e instanceof Error ? e.message : 'Import was not committed.' }, { status: missing ? 404 : 400 }); }
 }

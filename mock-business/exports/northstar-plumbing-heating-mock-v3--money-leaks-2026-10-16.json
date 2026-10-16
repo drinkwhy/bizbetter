@@ -1,0 +1,1884 @@
+{
+  "business": "Northstar Plumbing & Heating (mock v3)",
+  "industry": "Plumbing & HVAC contractor",
+  "generatedAt": "2026-10-16T11:35:29.950Z",
+  "report": {
+    "leaks": [
+      {
+        "category": "losing_months",
+        "label": "Losing months",
+        "finding": {
+          "id": "b7bd84b74784c0ce58675d6ad919a8b3d58a60eb69789a108fa471bb1a21ff09",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Losing months: 2 of 12 months ended in a net loss",
+          "classification": "CALCULATION",
+          "impactMinor": 2886000,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2026-04-01",
+          "periodEnd": "2026-07-31",
+          "sourceRecordIds": [
+            "d1984ee88dc5be67bf8a38d2b3ff839e0e7da42e58f4f490175caa3d5c02b55c",
+            "f11ae524eea900e3e267462799d88da37307fae86d0e98a1bc657c510058f628"
+          ],
+          "syncIds": [
+            "2ff6d66f-8af7-48fc-9b0d-ba1b86750a53"
+          ],
+          "sourceSystems": [
+            "Document upload: Profit & loss"
+          ],
+          "inputs": {
+            "months_reviewed": 12,
+            "losing_months": 2
+          },
+          "formula": "sum(-net_income) over months with net_income < 0",
+          "assumptions": [],
+          "confounders": [
+            "Revenue in the loss months averaged $73,400.00 vs $105,340.00 in profitable months, while most costs stayed fixed.",
+            "Fixed costs (rent, insurance, wages) not adjusted for slow months",
+            "Rising cost categories (see below)"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.756Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": false,
+              "patternSample": false
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: not established",
+              "patternSample: not established",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Open the loss months side by side with your best months and list every cost line that did not shrink with revenue.",
+            "Set a break-even revenue target per month (fixed costs divided by your gross margin) and track bookings against it weekly.",
+            "Fill slow months: schedule maintenance-agreement visits, tune-ups and promotions before the slow season starts."
+          ],
+          "prevention": [
+            "Review the P&L within 10 days of each month-end; act mid-month when bookings run below break-even.",
+            "Re-bid fixed costs (insurance, software, vehicles) annually with slow-season revenue in mind."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": false
+        },
+        "recoverable": false,
+        "basis": "CALCULATED",
+        "details": [
+          "2026-04: net loss $14,120.00 on revenue of $71,100.00 (northstar_profit_and_loss_oct2025-sep2026.xlsx, Sheet \"Profit and Loss\" row 27, column H (Apr 2026))",
+          "2026-07: net loss $14,740.00 on revenue of $75,700.00 (northstar_profit_and_loss_oct2025-sep2026.xlsx, Sheet \"Profit and Loss\" row 27, column K (Jul 2026))"
+        ],
+        "causes": [
+          "Revenue in the loss months averaged $73,400.00 vs $105,340.00 in profitable months, while most costs stayed fixed.",
+          "Fixed costs (rent, insurance, wages) not adjusted for slow months",
+          "Rising cost categories (see below)"
+        ],
+        "step": "pnl"
+      },
+      {
+        "category": "overdue_invoices",
+        "label": "Unpaid and overdue invoices",
+        "finding": {
+          "id": "b86b4debdf982d1f788c5a8d53fc2478cf27fa5c771470bdd889adbbf214cdb7",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Overdue invoices: 4 invoices past due as of 2026-10-16",
+          "classification": "CALCULATION",
+          "impactMinor": 1541500,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2026-07-16",
+          "periodEnd": "2026-08-26",
+          "sourceRecordIds": [
+            "62306eb5f8d0f97ef3d584add36f0b030fd36604ce03d25ddc8444557b524da9",
+            "053c081040d5bcfbc36d241a620bfdd7ea0de537c281199dac351d93ab60b3f1",
+            "4da6ac7ed9ae246fdb83aeac125be7923a4d54e16f8e0ad8211f103fa495a0d3",
+            "8b33a75f9987f0578bf12626c999d431f73c1f5f3c4ecae040361195eb7d256e",
+            "b79e9c58464871512a87d2e72fb19c3d11f6bdedd0e852a75ef99ab13fe69633",
+            "e91ef893f821ad5ab5e029571302587d945ad07da30f7052bbab782ad7ac841b",
+            "7c0c8b4472b733e0488e9034a1eb9bdb0350c34bdcf5ebef5486899147041a57",
+            "dd922a64f90d94519e17013dcb19fb0e68cb1b8725d2e33563c19827f44f801c"
+          ],
+          "syncIds": [
+            "770a0416-18e3-4b76-a96c-a04c7c442da9"
+          ],
+          "sourceSystems": [
+            "Document upload: Invoices / A/R"
+          ],
+          "inputs": {
+            "invoices": 4
+          },
+          "formula": "sum(amount - amount paid) for invoices with due date before the as-of date",
+          "assumptions": [],
+          "confounders": [
+            "No one is assigned to collections",
+            "No automatic reminders before and after the due date",
+            "Net terms given to commercial customers without deposits"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.760Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": false,
+              "patternSample": true
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: not established",
+              "patternSample: satisfied",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Call every invoice over 30 days overdue this week, starting with the largest; agree a payment date in writing.",
+            "Send statements with a pay-now link (card or ACH) and offer a short payment plan for the largest balance.",
+            "Pause new non-emergency work for accounts more than 60 days overdue until they are current."
+          ],
+          "prevention": [
+            "Turn on automatic reminders at 3 days before, on, and 7/14/30 days after the due date.",
+            "Collect deposits on installs and require card-on-file for residential service.",
+            "Review A/R aging every Monday."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": true
+        },
+        "recoverable": true,
+        "basis": "CALCULATED",
+        "details": [
+          "INV-2047 Granite City Apartments: $5,325.00 outstanding, due 2026-08-30 (47 days overdue)",
+          "INV-2041 Lakeside Dental: $4,850.00 outstanding, due 2026-08-15 (62 days overdue)",
+          "INV-2058 St. Cloud Brewing Co: $3,960.00 outstanding, due 2026-09-25 (21 days overdue)",
+          "INV-2052 R. Hoffman: $1,280.00 outstanding, due 2026-09-10 (36 days overdue)"
+        ],
+        "causes": [
+          "No one is assigned to collections",
+          "No automatic reminders before and after the due date",
+          "Net terms given to commercial customers without deposits"
+        ],
+        "step": "invoices_ar"
+      },
+      {
+        "category": "overtime",
+        "label": "Overtime cost",
+        "finding": {
+          "id": "e2d6aac2d762dc8a8f8858301627834a334a49b3234c722c16aafebaefa8dbd9",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Overtime: 14.1% of gross wages paid as overtime",
+          "classification": "ESTIMATE",
+          "impactMinor": 561425,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2026-07-10",
+          "periodEnd": "2026-09-18",
+          "sourceRecordIds": [
+            "dfc1e487634cfba6bd2c6caa30ee2c8e929d08ca6848806f4687a46cf291a6a7",
+            "e4b2c210161f542b6f5682f40977d144ad1a8760e2f1643c7470bc4d319d2953",
+            "0f1373f8d0cdeed0d35ff8eddb901e8ecc134d32e641dc47fa1c2beb43118f90",
+            "d017616a9ea55c4a1a8bf1918b66e287e350b825272b0fec691a9bd43743abab",
+            "1b839764760580e2f6ea557e9633dd856c90e0fee4345dc7363e86941c3b4d80",
+            "e58a289055ffe874e9c330cae4de7ce2edbf2e164da2c9d8c303ea8c6e6f708c",
+            "1008f56f47f4596bcc1a55ae3c3657b83a2770da92623d122c4162815c85ce67",
+            "fc3b09069ed74a5cfdebdab542a506b15f76a0a3da16151356dc105b19b4610d",
+            "aed049dfc5d7b557ffcb39227aec77627fe5ffc1fbbbc07b35ffbee7bccc8aff",
+            "9f0bcbca7b149d9274f6caf14ff5a83c3958fbb7ea61e6e7cc1410057105a41d",
+            "a61b2a6be69b54bb8c95fd685012ace6fb5110ce8e965f8f7492e198d408c8e7",
+            "53ff99069d38feb397ab0629a2149f9d1fad52ce52739cc0a382143ee88c2382"
+          ],
+          "syncIds": [
+            "556f26ef-2b5f-4e52-8335-18fb55ef962c"
+          ],
+          "sourceSystems": [
+            "Document upload: Payroll"
+          ],
+          "inputs": {
+            "overtime_pay": 1684275,
+            "gross_wages": 11932275
+          },
+          "formula": "overtime pay / 3 (the half-time premium at time-and-a-half)",
+          "assumptions": [
+            "Assumes overtime is paid at 1.5x; only the 0.5x premium is counted as avoidable."
+          ],
+          "confounders": [
+            "Not enough senior techs for the call volume",
+            "Jobs scheduled late in the day or poorly routed",
+            "Overtime not approved in advance"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.764Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": false,
+              "patternSample": true
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: not established",
+              "patternSample: satisfied",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Shift routine maintenance calls to slower days and stop booking non-emergency work after 3 pm for the overloaded techs.",
+            "Compare the overtime premium with the cost of hiring or subcontracting one more tech.",
+            "Require approval for overtime beyond 5 hours per week per person."
+          ],
+          "prevention": [
+            "Review overtime by employee every payroll and set a weekly cap.",
+            "Track billable hours per tech to spot overload early."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": true
+        },
+        "recoverable": true,
+        "basis": "ESTIMATE",
+        "details": [
+          "Overtime pay $16,842.75 of $119,322.75 gross wages; the premium portion above straight time is about $5,614.25.",
+          "Jake Lindgren: 147 overtime hours vs 560 regular hours (26.3%), $8,379.00 overtime pay",
+          "Marcus Olson: 141 overtime hours vs 560 regular hours (25.2%), $7,719.75 overtime pay"
+        ],
+        "causes": [
+          "Not enough senior techs for the call volume",
+          "Jobs scheduled late in the day or poorly routed",
+          "Overtime not approved in advance"
+        ],
+        "step": "payroll"
+      },
+      {
+        "category": "labor_utilization",
+        "label": "Labor utilization (billable vs paid hours)",
+        "finding": {
+          "id": "cab5347a48697b82be3ac789787413a165215ca7465afa6a28b353e45e606081",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Labor utilization: Jake Lindgren, Marcus Olson below 70.0% billable hours",
+          "classification": "ESTIMATE",
+          "impactMinor": 552935,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2026-07-10",
+          "periodEnd": "2026-09-18",
+          "sourceRecordIds": [
+            "631b83b608a8e473a2c78c5545351d12799470cbf3af764c4bbcca9e02889399",
+            "28ee74b24d3e2fb7c9fbd6be0e67488cccec83b87eb366023499e237afe1fd22",
+            "7a2df62e1917fe67f43fb164c09d2270eb5820d61d604674ac1f6888e49c5276",
+            "aadc2b516a9291685bac3ee3779448f9311f62e353002bb880a458492ef08af0",
+            "52d608ecc95c44c81a812c522ed6a1fc4286b5178fc84b6808f6b7dbebf33ed1",
+            "966360ab2c495a241fa4448efff3713e85260d039f6f4a07d6d3d4a937a4775b",
+            "c6bdb0a5931773a2c61135a509b7aa1c1e574cebfd3b5193d7e4e821ee23b197",
+            "1f8934c79f64ecda1f24932498c02d6acdb2b880376c997c95f8978aa5d286ff",
+            "fcb8bd7a55ccb5aec6c18b30479f818e8ed05be7479be459978976bb0d4d17e5",
+            "df4e8b105085cdd3527062a5c4645f315afcdac992b341af87c9cbb5add1b361",
+            "79f18830de815009867dcb3a00a315e7aed489e6aadc64e246b5b5b488cc2fea",
+            "ac00a52a3dce49351ec09faddd99093c28d71640c7d3f588e08c66b24e2cf48a"
+          ],
+          "syncIds": [
+            "78c340d5-68de-4d45-a34e-1409be468ecb"
+          ],
+          "sourceSystems": [
+            "Document upload: Timesheets / time entries"
+          ],
+          "inputs": {
+            "employees": 5,
+            "target_bp": 7000
+          },
+          "formula": "per employee below target: (0.7 x total hours - billable hours) x hourly rate from payroll",
+          "assumptions": [
+            "Uses straight-time hourly rate; overtime premium is counted separately in the overtime leak.",
+            "Overlaps with the overtime and fuel leaks."
+          ],
+          "confounders": [
+            "Driving back to the shop between calls (no route planning)",
+            "Waiting on parts or dispatch",
+            "Overtime spent on non-billable work"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.772Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": false,
+              "patternSample": true
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: not established",
+              "patternSample: satisfied",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Plan routes so techs go job to job, and stock vans so they do not return to the shop for parts.",
+            "Review non-billable hours with each tech weekly."
+          ],
+          "prevention": [
+            "Track billable vs paid hours per tech every pay period with a 70% target."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": true
+        },
+        "recoverable": true,
+        "basis": "ESTIMATE",
+        "details": [
+          "Jake Lindgren: 58.0% billable; 84.9 hours short of target, about $3,226.20 of paid time not billed.",
+          "Marcus Olson: 61.0% billable; 63.1 hours short of target, about $2,303.15 of paid time not billed.",
+          "Jake Lindgren: 410.0 billable of 707.0 hours (58.0%)",
+          "Marcus Olson: 427.6 billable of 701.0 hours (61.0%)",
+          "Ana Reyes: 420.3 billable of 568.0 hours (74.0%)",
+          "Tom Brekke: 429.4 billable of 565.0 hours (76.0%)",
+          "Sam Voigt: 406.0 billable of 564.0 hours (72.0%)"
+        ],
+        "causes": [
+          "Driving back to the shop between calls (no route planning)",
+          "Waiting on parts or dispatch",
+          "Overtime spent on non-billable work"
+        ],
+        "step": "payroll"
+      },
+      {
+        "category": "processor_fees",
+        "label": "Payment processor fees",
+        "finding": {
+          "id": "c6d7baeae8ce753142800f6de2d2d8bbae17b3fb2fcf82eddad29ad092f22541",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Card processing fees: 3.5% effective rate vs 2.9% target",
+          "classification": "ESTIMATE",
+          "impactMinor": 374454,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2025-10-28",
+          "periodEnd": "2026-03-28",
+          "sourceRecordIds": [
+            "36cd0ea9b46391b384d1e55b46a43d15f4e7f89b6b944edc650f844a3362ac6b",
+            "87bc4ddab8a74d7bb469940e5866d33216e9daf90e9cca0c2a83a002800f66e9",
+            "f4cb78867f854ca3282e1b61af0b16097bab9e66869f5cc508090258350710ba",
+            "bc488d71243fc4f4d2d0e18554f621ed813c3879919a6ce25fc0b27b7ea3f2e2",
+            "e29b39bf86c64a89c574bc8169563580e4e76fdea99e02aee4bc818b830808be",
+            "1a7abfb59e9db2d13bda1c2409f17c2966182a923b43f4a53be5c60653836d9e",
+            "8949b81db98f048ae2080f1fa8c562bcc94753a8f15b68a971c3f6f3b227c29e",
+            "2823b909f304a52820dc9a3a50bddee01ef2e29d2a260c3931cfba20e0968753",
+            "74d86c2e3ec6a742921b69a60c17332790daed9530b8d86e398cee7f2a176881",
+            "f633adc66fe449d4153735010981b198a7cada9c46458fc6cd808f1da0568192",
+            "885711ccc18810e0088a0b9c99d05d1da4b12bc4f7c0ed5ffbc4749f6accce37",
+            "db7b857251ac5535dcf7eebc11372dbe4838459d38e5f2fa2f75268f0eb77827"
+          ],
+          "syncIds": [
+            "308ebbe3-baf7-4e61-9d64-f69446cf3b1e"
+          ],
+          "sourceSystems": [
+            "Document upload: Payment processor fees"
+          ],
+          "inputs": {
+            "fees": 2045132,
+            "gross": 57609600,
+            "target_bp": 290
+          },
+          "formula": "total fees - gross volume x target rate",
+          "assumptions": [
+            "Target rate 2.9% is configurable (BIZBETTER_FEE_TARGET_RATE); it is a negotiating goal, not a guaranteed rate."
+          ],
+          "confounders": [
+            "Flat-rate pricing instead of interchange-plus",
+            "Card-not-present / keyed entries charged at higher rates",
+            "Per-transaction and monthly fees on many small payments"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.760Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": false,
+              "patternSample": true
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: not established",
+              "patternSample: satisfied",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Request an interchange-plus quote from your current processor and two competitors using the last 12 months of volume.",
+            "Push large commercial invoices to ACH/bank transfer instead of card.",
+            "Add a compliant card surcharge or cash-discount program if allowed in your state."
+          ],
+          "prevention": [
+            "Check the effective rate (fees / gross) on every monthly statement.",
+            "Review processor pricing once a year."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": true
+        },
+        "recoverable": true,
+        "basis": "ESTIMATE",
+        "details": [
+          "Total fees $20,451.32 on $576,096.00 gross volume across 12 payout rows.",
+          "At a 2.9% rate the same volume would cost $16,706.78."
+        ],
+        "causes": [
+          "Flat-rate pricing instead of interchange-plus",
+          "Card-not-present / keyed entries charged at higher rates",
+          "Per-transaction and monthly fees on many small payments"
+        ],
+        "step": "processor_fees"
+      },
+      {
+        "category": "cost_trend",
+        "label": "Cost categories trending up",
+        "finding": {
+          "id": "871f1ad3b98cac8eac9786aaca6a79b211853de3a5b50b694380b1593c26b4d9",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Fuel up 53.8% while revenue changed -19.6%",
+          "classification": "ESTIMATE",
+          "impactMinor": 311000,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2025-10-01",
+          "periodEnd": "2026-09-30",
+          "sourceRecordIds": [
+            "7d1d6491c205c9ae55450f28d48d68d0c8ff02c23707c522085588c30cea5c94",
+            "3b4a7d87fb1e0fed5285111cc8932fdb5d9016f32e99d9ed06a9259a62552fda",
+            "04f9718a8e020a7fc55349dee87953730fdd694947794b912fd3c5fb1613a9d4",
+            "b29513990172a9542773e82396892edfc850dc0f1ae703938ed202b60af79100",
+            "45ba7e0d8b0ec95c45fa494d4ada4f00969ecf5987f24a3b062286d21f9ebedb",
+            "2aef443733c25dba0b9a49c0639dcd177c2db4ec0c8b3932c7565f93be5d1a3b",
+            "6886a0e4e96e5b2ab88b8b397cb6eaa6365e941cd91240be4a2fad235b60639c",
+            "6e42688467cc26429b89b22eae7b58a8cb8423ccbef9b6e3896dbd685cbaa5a3",
+            "ff6ad7288f94e276905c09f126d145b7d4839181113411a803f3202659a47518",
+            "34e07f1301db863691c675fc5a8a5ef9f7c868dd2182f5c090e2124d4eb5faa7",
+            "14e922ea3444fe54206b8ea6465ca66b22181d21483e7986f7040b8756a95463",
+            "61c7e1e2d94f2413ed498a461dc333224ca34e8768e642ec31a3d0defa558133"
+          ],
+          "syncIds": [
+            "2ff6d66f-8af7-48fc-9b0d-ba1b86750a53"
+          ],
+          "sourceSystems": [
+            "Document upload: Profit & loss"
+          ],
+          "inputs": {
+            "first3": 578000,
+            "last3": 889000
+          },
+          "formula": "sum(last 3 months) - sum(first 3 months) for this cost line",
+          "assumptions": [
+            "Excess is measured against the first three months in the file; it is not a guaranteed saving."
+          ],
+          "confounders": [
+            "Unplanned routing and trips back to the shop",
+            "Fuel price increases",
+            "Idling and vehicle condition"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.757Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": false,
+              "patternSample": true
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: not established",
+              "patternSample: satisfied",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Pull every Fuel transaction for the last 3 months and tag each as necessary, reducible or cancel.",
+            "Route calls by area each morning and stock vans to avoid trips back to the shop; use a fuel card with per-vehicle reports.",
+            "Set a monthly budget for Fuel tied to revenue and review it at month-end."
+          ],
+          "prevention": [
+            "Track Fuel as a percent of revenue each month and investigate any month above the prior quarter's average.",
+            "Require owner approval for new recurring charges."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": true
+        },
+        "recoverable": true,
+        "basis": "ESTIMATE",
+        "details": [
+          "First 3 months: $5,780.00; last 3 months: $8,890.00 (+$3,110.00).",
+          "Monthly: 2025-10 $1,850.00, 2025-11 $1,920.00, 2025-12 $2,010.00, 2026-01 $2,090.00, 2026-02 $2,180.00, 2026-03 $2,260.00, 2026-04 $2,390.00, 2026-05 $2,510.00, 2026-06 $2,640.00, 2026-07 $2,790.00, 2026-08 $2,950.00, 2026-09 $3,150.00.",
+          "Revenue over the same windows: $338,500.00 then $272,100.00."
+        ],
+        "causes": [
+          "Unplanned routing and trips back to the shop",
+          "Fuel price increases",
+          "Idling and vehicle condition"
+        ],
+        "step": "pnl"
+      },
+      {
+        "category": "duplicate_charges",
+        "label": "Duplicate charges",
+        "finding": {
+          "id": "f88d5f78adc55cf181a5b50abf81ddc098aa61edb859d2066fbaff12df45c6fe",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Possible duplicate charges: 2 repeated charge(s)",
+          "classification": "HYPOTHESIS",
+          "impactMinor": 303085,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2026-07-14",
+          "periodEnd": "2026-09-09",
+          "sourceRecordIds": [
+            "94681d4deef3eaa07a6907a02b7096f6cf1b798fdfc712ad7858e31e836bfc7e",
+            "fdeffc06c04b34ae279de2b42049fa4b64103a4c50da7dafeaea14c7cbae462a",
+            "2f426be6f3b38759ed6ce3c8f741e554b4bb3e271bc1f7e10d40e2c457c4e172",
+            "0e1a42202f2f9ae10a9a35bc17ec27ee057cf48e9b6cdcc499809339338d0611"
+          ],
+          "syncIds": [
+            "8ff84298-48b3-45b0-8bda-531e69800f05",
+            "1fa40826-7e11-4721-b3a3-014c13cccbf3"
+          ],
+          "sourceSystems": [
+            "Document upload: Credit card statement",
+            "Document upload: Bank statement"
+          ],
+          "inputs": {
+            "pairs": 2
+          },
+          "formula": "sum of the second charge in each same-vendor, same-amount pair within 3 days",
+          "assumptions": [],
+          "confounders": [
+            "Vendor processed the same payment twice",
+            "An invoice was paid by ACH and again by card",
+            "A card terminal retried a transaction"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.761Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": true,
+              "patternSample": false
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: satisfied",
+              "patternSample: not established",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Match each pair to the vendor invoice; if only one invoice exists, request a refund or credit in writing.",
+            "For card charges, dispute the duplicate with the card issuer if the vendor does not refund within 10 days."
+          ],
+          "prevention": [
+            "Pay vendors from one method only and record the invoice number in the payment memo.",
+            "Review bank and card activity weekly for repeated amounts."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": true
+        },
+        "recoverable": true,
+        "basis": "POSSIBLE",
+        "details": [
+          "HOME DEPOT #2231: $612.48 charged twice around 2026-07-14 (northstar_credit_card_apr-sep2026.csv, CSV row 32)",
+          "FERGUSON SUPPLY #4471 ACH: $2,418.37 charged twice around 2026-09-09 (northstar_bank_statement_sep2026.pdf, page 1, line 12)"
+        ],
+        "causes": [
+          "Vendor processed the same payment twice",
+          "An invoice was paid by ACH and again by card",
+          "A card terminal retried a transaction"
+        ],
+        "step": "bank_card"
+      },
+      {
+        "category": "callbacks",
+        "label": "Callbacks / rework",
+        "finding": {
+          "id": "03c5e074c9b968ef65e93a3d30aa6f7d6b40f759f409450f46625bd692265e32",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Callbacks: 2 of 30 jobs were return visits",
+          "classification": "CALCULATION",
+          "impactMinor": 282500,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2026-09-10",
+          "periodEnd": "2026-09-28",
+          "sourceRecordIds": [
+            "645c53908014c839d2b9a0e39eb5bdc0ca4373b80dda849cf162346f760788ae",
+            "2f1de138db05f736e8d309fa4a3806888abac4defb73f4c0855837e07edfcd80",
+            "a691e77f2727b042e06c742a7ce31f27e2ff3ccf6dd44250b2e2d5e296489937",
+            "a734a65b45ab34933d6afc8b8e612f7e60c75601b28d4eb0b42281bd2c9c5cb4"
+          ],
+          "syncIds": [
+            "194aa521-a3c3-4f98-ade3-66f0a7eca2cf"
+          ],
+          "sourceSystems": [
+            "Document upload: Job costing"
+          ],
+          "inputs": {
+            "callbacks": 2,
+            "jobs": 30
+          },
+          "formula": "sum(labor cost + material cost) of jobs marked as callbacks",
+          "assumptions": [
+            "Counts the full cost of the return visit; revenue billed on the callback job, if any, is not subtracted."
+          ],
+          "confounders": [
+            "Installs not commissioned or tested before leaving",
+            "Wrong or low-quality parts",
+            "Rushed schedule"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.769Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": false,
+              "patternSample": false
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: not established",
+              "patternSample: not established",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Find the original job for each callback and recover warranty parts cost from the supplier where the part failed.",
+            "Review each callback with the technician and record the root cause."
+          ],
+          "prevention": [
+            "Use a pre-departure checklist with photos for installs.",
+            "Track callback rate by technician and job type monthly."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": true
+        },
+        "recoverable": true,
+        "basis": "CALCULATED",
+        "details": [
+          "J-3121 Water heater install (Sam Voigt): labor $980.00 + materials $1,140.00 (northstar_job_costing_jul-sep2026.csv, CSV row 22)",
+          "J-3126 Furnace repair (Ana Reyes): labor $410.00 + materials $295.00 (northstar_job_costing_jul-sep2026.csv, CSV row 27)"
+        ],
+        "causes": [
+          "Installs not commissioned or tested before leaving",
+          "Wrong or low-quality parts",
+          "Rushed schedule"
+        ],
+        "step": "job_costing"
+      },
+      {
+        "category": "marketing_return",
+        "label": "Marketing return by lead source",
+        "finding": {
+          "id": "b9f98012d20c86b5579df881d3aa769ef9c4ce57f3cce780be9b8639f92e5b96",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Marketing return: Facebook Ads, Angi Leads cost more than the jobs they brought in",
+          "classification": "ESTIMATE",
+          "impactMinor": 218900,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2026-07-02",
+          "periodEnd": "2026-09-30",
+          "sourceRecordIds": [
+            "f35afbdedb5aa07ae5b2a1ffc4308f9f165c2ec7b5529a7bd1c879a6b2a41691",
+            "4f18e06b0b7de3ea071c0beed2f3054688cc2b3ddca83209fb183d63e096fdd8",
+            "0f3b1eddc21736f0696d5fb853c6eebd9910f8a4d78ccae1335541ba7ac8234a",
+            "566b23347c1dc660c303a9b61f49d5c889998ff867ea3ce7e77b419253d8bf2c",
+            "23814570e0c7933fe0821199ad2826b4801b4d69e4efd8046562d4211da73fd5",
+            "01941fd48bb03b7dc517a624d208a91c260c21d3186de40d09c61f749c45e13d",
+            "78f55972fa1257b521c164370f487f011cb1b6db1e3c6caebfa7f280a47710f6",
+            "a21a7b974687e74c8be6a9618c7a0e1b2de98f0f61104f98bf97f941db12f634",
+            "992cd3013ce865b84f68a41a2bab99eb34c01bf1f3c959edee8687d8a990a2fc",
+            "581c983c5a9c3cc17bee77a06043c35e93c376760bee221ea962bfc851746ccf",
+            "25be46959cbe843a59aa093599f47a2f59dbda8fd40bd268920bd81ba6dd5b56",
+            "7e9ec774a8cb8ca80cc905a7f20f27e77b7122508bd138432975b362a3c6d5a3"
+          ],
+          "syncIds": [
+            "a9d38636-dfb2-4fee-8e15-13262772a6e9",
+            "194aa521-a3c3-4f98-ade3-66f0a7eca2cf"
+          ],
+          "sourceSystems": [
+            "Document upload: Marketing spend by source",
+            "Document upload: Job costing"
+          ],
+          "inputs": {
+            "sources": 3
+          },
+          "formula": "per source: spend - max(0, sum(job revenue - labor - materials) of jobs with that lead source in the same months)",
+          "assumptions": [
+            "Assumes the job costing file lists every job from these sources in those months; repeat business from these customers later is not counted."
+          ],
+          "confounders": [
+            "Paying for leads that rarely book or book only small jobs",
+            "Lead source not recorded on every job (attribution gaps)"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.770Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": true,
+              "patternSample": true
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: satisfied",
+              "patternSample: satisfied",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Pause or cut the budget on the losing sources for one month and watch booked jobs.",
+            "Move the budget to the source with the best contribution per dollar."
+          ],
+          "prevention": [
+            "Record the lead source on every job and review spend vs contribution by source monthly."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": true
+        },
+        "recoverable": true,
+        "basis": "ESTIMATE",
+        "details": [
+          "Facebook Ads: spent $1,260.00 in 2026-07, 2026-08, 2026-09; 5 job(s) contributed $662.00; shortfall $598.00.",
+          "Angi Leads: spent $2,340.00 in 2026-07, 2026-08, 2026-09; 2 job(s) contributed $749.00; shortfall $1,591.00.",
+          "Google Ads: spend $1,950.00, 8 attributed job(s), job contribution $2,604.00",
+          "Facebook Ads: spend $1,260.00, 5 attributed job(s), job contribution $662.00",
+          "Angi Leads: spend $2,340.00, 2 attributed job(s), job contribution $749.00"
+        ],
+        "causes": [
+          "Paying for leads that rarely book or book only small jobs",
+          "Lead source not recorded on every job (attribution gaps)"
+        ],
+        "step": "job_costing"
+      },
+      {
+        "category": "losing_jobs",
+        "label": "Unprofitable jobs",
+        "finding": {
+          "id": "e57b6260bb57633d7162c352d5def4202318d305f951074582ba9ed195879faf",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Unprofitable jobs: 3 of 30 jobs cost more than they billed",
+          "classification": "CALCULATION",
+          "impactMinor": 217000,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2026-07-23",
+          "periodEnd": "2026-09-30",
+          "sourceRecordIds": [
+            "78f55972fa1257b521c164370f487f011cb1b6db1e3c6caebfa7f280a47710f6",
+            "a21a7b974687e74c8be6a9618c7a0e1b2de98f0f61104f98bf97f941db12f634",
+            "992cd3013ce865b84f68a41a2bab99eb34c01bf1f3c959edee8687d8a990a2fc",
+            "e6e6ee5745da83d9efc10055061763eb67baac28ef158db4686d42958fa2b75e",
+            "645c53908014c839d2b9a0e39eb5bdc0ca4373b80dda849cf162346f760788ae",
+            "2f1de138db05f736e8d309fa4a3806888abac4defb73f4c0855837e07edfcd80",
+            "ffa648ec47a4f112902c29dad31f34414168475c2054b5a119b120c58edaa70f",
+            "5cf55b487af7cb48a69b7fbcd8a3e1b33324e0069a1655dcbc74bbeef8680e87",
+            "51082ebb6966733cffe51ebbef9ecf64672627b41844d0cda87c53657168bc13"
+          ],
+          "syncIds": [
+            "194aa521-a3c3-4f98-ade3-66f0a7eca2cf"
+          ],
+          "sourceSystems": [
+            "Document upload: Job costing"
+          ],
+          "inputs": {
+            "jobs_reviewed": 30,
+            "losing_jobs": 3
+          },
+          "formula": "sum(labor + materials - revenue) over jobs where that is positive",
+          "assumptions": [],
+          "confounders": [
+            "Quotes built on outdated labor hours or material prices",
+            "Scope changes done without a signed change order",
+            "Callbacks / rework on the same job"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.759Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": false,
+              "patternSample": true
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: not established",
+              "patternSample: satisfied",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Review each losing job ticket: compare quoted vs actual hours and materials and note the cause.",
+            "Bill any unbilled change orders or extra materials where the customer approved the work.",
+            "Update the price book for these job types so the next quote covers labor, materials and overhead."
+          ],
+          "prevention": [
+            "Require a change order before extra work starts.",
+            "Run a job-costing review weekly and flag any job whose costs pass 70% of the quoted price before it is finished."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": true
+        },
+        "recoverable": true,
+        "basis": "CALCULATED",
+        "details": [
+          "J-3107 (Boiler replacement, J. Larson): billed $6,200.00, labor $3,950.00 + materials $3,180.00 = loss $930.00 (northstar_job_costing_jul-sep2026.csv, CSV row 8)",
+          "J-3121 (Water heater install, St. Cloud Brewing): billed $1,650.00, labor $980.00 + materials $1,140.00 = loss $470.00 (northstar_job_costing_jul-sep2026.csv, CSV row 22)",
+          "J-3128 (Repipe, I. Ruiz): billed $9,800.00, labor $6,450.00 + materials $4,120.00 = loss $770.00 (northstar_job_costing_jul-sep2026.csv, CSV row 29)"
+        ],
+        "causes": [
+          "Quotes built on outdated labor hours or material prices",
+          "Scope changes done without a signed change order",
+          "Callbacks / rework on the same job"
+        ],
+        "step": "job_costing"
+      },
+      {
+        "category": "underpriced_jobs",
+        "label": "Underpriced jobs / thin margins",
+        "finding": {
+          "id": "b0324a693dca11e6f98079b546fa8d226424f1dafb64c4797e913ece44cb64f9",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Underpriced jobs: 3 jobs earned under half the typical 45.3% margin",
+          "classification": "ESTIMATE",
+          "impactMinor": 193070,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2026-08-03",
+          "periodEnd": "2026-09-21",
+          "sourceRecordIds": [
+            "f417fff2320afaed379a2a9bb133810ef5c2c603aec4be508fbc73f71799ef8f",
+            "aa1ce3c302db9e40e1b685eba942a4272060dcb3848cd50ab6f607f0b844ae60",
+            "dedc1e7798e25afd0997c0a6bf1d8daa04896283a178205902c5e25f4e64c6e4",
+            "48baac13fbd8f44176404dbed2baa0282cd15d0e27ce0b23ddfc7986969cecf2",
+            "dda8180ea5c00d0ede9377c91b1f03729bdff5d4d6e52e0e2f33ce18d5c90fb3",
+            "b931bb1cdfc4217d03a1fcf7a3c75f095ef2065064102cde033fab62a85470d7",
+            "da47e4a9d2742d81e18e19a66e0c74bde13d398c22f339a3f3804722979cdaec",
+            "464584047dd8fc10918c5d65d5aa3dd577ee1a801e2e96dc2b2d2800e621cbe8",
+            "7382dcf7bfd6e57697745c936772635c515b80a9b6d3fcd8fbe5d8e55b143cc3"
+          ],
+          "syncIds": [
+            "194aa521-a3c3-4f98-ade3-66f0a7eca2cf"
+          ],
+          "sourceSystems": [
+            "Document upload: Job costing"
+          ],
+          "inputs": {
+            "median_margin_bp": 4527,
+            "jobs": 3
+          },
+          "formula": "sum(revenue x median job margin - actual margin) for profitable jobs below half the median margin",
+          "assumptions": [
+            "Target margin is this business's own median job margin (45.3%), not an industry benchmark."
+          ],
+          "confounders": [
+            "Prices for Water heater install have not kept up with labor and material costs",
+            "Flat-rate prices set below the cost of the parts used",
+            "Discounts given without approval"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.759Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": false,
+              "patternSample": true
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: not established",
+              "patternSample: satisfied",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Re-price Water heater install using actual labor hours and current material costs plus your target margin.",
+            "Add material price escalators to quotes valid longer than 30 days.",
+            "Train techs to present good/better/best options instead of discounting."
+          ],
+          "prevention": [
+            "Review the price book every quarter against job-costing results.",
+            "Flag any quote below the target margin for owner approval."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": true
+        },
+        "recoverable": true,
+        "basis": "ESTIMATE",
+        "details": [
+          "J-3110 (Water heater install): billed $1,720.00, margin $140.00 (8.1%)",
+          "J-3115 (Water heater install): billed $1,790.00, margin $160.00 (8.9%)",
+          "J-3124 (Water heater install): billed $1,760.00, margin $155.00 (8.8%)"
+        ],
+        "causes": [
+          "Prices for Water heater install have not kept up with labor and material costs",
+          "Flat-rate prices set below the cost of the parts used",
+          "Discounts given without approval"
+        ],
+        "step": "job_costing"
+      },
+      {
+        "category": "cost_trend",
+        "label": "Cost categories trending up",
+        "finding": {
+          "id": "f7b29fad0c4fac3d0409a0a07213d1524e9bf650d05bd6de44da1876e869b4bc",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Software Subscriptions up 54.7% while revenue changed -19.6%",
+          "classification": "ESTIMATE",
+          "impactMinor": 105000,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2025-10-01",
+          "periodEnd": "2026-09-30",
+          "sourceRecordIds": [
+            "8871d5ff676f6db51b79b83b2ab4d13c880f5e8c874227a85a022e16557b9d9e",
+            "fae2305806271fb0768b617ba8092eace39c78fb59dbc038a6e141d81a420758",
+            "38e5babdf0fd84633b4bbafe6559f82182502ff2d0fdb4a57ef32eabea1d3508",
+            "957929f2d99acc27c9bde70bff8c809add5a36d328d1c17c69e93c07ce5ce82c",
+            "1d8bb386f944e1a98f8d3b50bc61698f67eb6194438204280118c0b0cdeca6a3",
+            "8f5b1e6300281ee576c62004628a96fdd418a9a0c6bcd641d70e91c0ca58e083",
+            "ac2bbc97b66e000b0ed9caa5998f0346b2556f63edace8fd37c21bcc6ee8de2c",
+            "77accdc8a232a2ae539ab0771217d47ccef818ccd7bd668a1575a3f990e2451d",
+            "22a9c48c2b0f90fa5185b5e02586c0bf98489d282dfbf2d4056ff56ed4488069",
+            "f32279fa3b51e9f8b08c9b0d7039dd17800a4375a9d8c4e9eab5680d6f812d97",
+            "b4efecdb2caabecd7891ac83e8360f7ab9ba90fb7b3184f4c3b1122e663f4812",
+            "80a195c60e30d126dbc8c9695d8b40847f5ba0f10c0cbc34917908501c3b634b"
+          ],
+          "syncIds": [
+            "2ff6d66f-8af7-48fc-9b0d-ba1b86750a53"
+          ],
+          "sourceSystems": [
+            "Document upload: Profit & loss"
+          ],
+          "inputs": {
+            "first3": 192000,
+            "last3": 297000
+          },
+          "formula": "sum(last 3 months) - sum(first 3 months) for this cost line",
+          "assumptions": [
+            "Excess is measured against the first three months in the file; it is not a guaranteed saving."
+          ],
+          "confounders": [
+            "Vendor price increases or added services",
+            "Unused seats/licenses or overlapping tools",
+            "Spending not reviewed against revenue"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.758Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": false,
+              "patternSample": true
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: not established",
+              "patternSample: satisfied",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Pull every Software Subscriptions transaction for the last 3 months and tag each as necessary, reducible or cancel.",
+            "Cancel unused or duplicate tools and negotiate annual pricing on the ones you keep.",
+            "Set a monthly budget for Software Subscriptions tied to revenue and review it at month-end."
+          ],
+          "prevention": [
+            "Track Software Subscriptions as a percent of revenue each month and investigate any month above the prior quarter's average.",
+            "Require owner approval for new recurring charges."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": true
+        },
+        "recoverable": true,
+        "basis": "ESTIMATE",
+        "details": [
+          "First 3 months: $1,920.00; last 3 months: $2,970.00 (+$1,050.00).",
+          "Monthly: 2025-10 $640.00, 2025-11 $640.00, 2025-12 $640.00, 2026-01 $690.00, 2026-02 $690.00, 2026-03 $740.00, 2026-04 $790.00, 2026-05 $840.00, 2026-06 $890.00, 2026-07 $940.00, 2026-08 $990.00, 2026-09 $1,040.00.",
+          "Revenue over the same windows: $338,500.00 then $272,100.00."
+        ],
+        "causes": [
+          "Vendor price increases or added services",
+          "Unused seats/licenses or overlapping tools",
+          "Spending not reviewed against revenue"
+        ],
+        "step": "pnl"
+      },
+      {
+        "category": "technician_contribution",
+        "label": "Technician contribution",
+        "finding": {
+          "id": "464f08ffb9a5b473bb5e1a3d5b2561c176f710ac6ef1468d6b826915afe593f3",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Technician contribution: Sam Voigt below the team median margin",
+          "classification": "ESTIMATE",
+          "impactMinor": 71249,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2026-08-03",
+          "periodEnd": "2026-09-21",
+          "sourceRecordIds": [
+            "f417fff2320afaed379a2a9bb133810ef5c2c603aec4be508fbc73f71799ef8f",
+            "aa1ce3c302db9e40e1b685eba942a4272060dcb3848cd50ab6f607f0b844ae60",
+            "dedc1e7798e25afd0997c0a6bf1d8daa04896283a178205902c5e25f4e64c6e4",
+            "48baac13fbd8f44176404dbed2baa0282cd15d0e27ce0b23ddfc7986969cecf2",
+            "dda8180ea5c00d0ede9377c91b1f03729bdff5d4d6e52e0e2f33ce18d5c90fb3",
+            "b931bb1cdfc4217d03a1fcf7a3c75f095ef2065064102cde033fab62a85470d7",
+            "e6e6ee5745da83d9efc10055061763eb67baac28ef158db4686d42958fa2b75e",
+            "645c53908014c839d2b9a0e39eb5bdc0ca4373b80dda849cf162346f760788ae",
+            "2f1de138db05f736e8d309fa4a3806888abac4defb73f4c0855837e07edfcd80",
+            "da47e4a9d2742d81e18e19a66e0c74bde13d398c22f339a3f3804722979cdaec",
+            "464584047dd8fc10918c5d65d5aa3dd577ee1a801e2e96dc2b2d2800e621cbe8",
+            "7382dcf7bfd6e57697745c936772635c515b80a9b6d3fcd8fbe5d8e55b143cc3"
+          ],
+          "syncIds": [
+            "194aa521-a3c3-4f98-ade3-66f0a7eca2cf"
+          ],
+          "sourceSystems": [
+            "Document upload: Job costing"
+          ],
+          "inputs": {
+            "technicians": 5,
+            "median_margin_bp": 1008
+          },
+          "formula": "sum over technicians more than 10 points below median of revenue x (median margin - technician margin)",
+          "assumptions": [
+            "Overlaps with the losing-jobs and underpriced-jobs leaks; uses only uploaded jobs."
+          ],
+          "confounders": [
+            "Assigned the job types that are underpriced (check the underpriced jobs leak)",
+            "More hours per job than other techs",
+            "Discounts or free return visits"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.768Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": false,
+              "patternSample": true
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: not established",
+              "patternSample: satisfied",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Review this technician's jobs one by one: compare hours and materials with the same job type done by others.",
+            "Fix pricing on the job types they are assigned before judging the technician."
+          ],
+          "prevention": [
+            "Report contribution margin by technician monthly.",
+            "Pair newer techs with a senior tech on the job types where they lose margin."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": true
+        },
+        "recoverable": true,
+        "basis": "ESTIMATE",
+        "details": [
+          "Sam Voigt: margin -0.2% vs team median 10.1%; $712.49 below median on $6,920.00 of revenue.",
+          "Marcus Olson: 7 jobs, revenue $8,630.00, contribution $3,131.00 (36.3%)",
+          "Ana Reyes: 7 jobs, revenue $6,785.00, contribution $3,288.00 (48.5%)",
+          "Tom Brekke: 6 jobs, revenue $12,070.00, contribution $1,194.00 (9.9%)",
+          "Jake Lindgren: 6 jobs, revenue $14,485.00, contribution $1,460.00 (10.1%)",
+          "Sam Voigt: 4 jobs, revenue $6,920.00, contribution -$15.00 (-0.2%)"
+        ],
+        "causes": [
+          "Assigned the job types that are underpriced (check the underpriced jobs leak)",
+          "More hours per job than other techs",
+          "Discounts or free return visits"
+        ],
+        "step": "job_costing"
+      },
+      {
+        "category": "overlapping_subscriptions",
+        "label": "Overlapping subscriptions",
+        "finding": {
+          "id": "6a9b1d754ebbdf23ef8b932dd797cbc2d55751d9dd3bf5cdb18a42c224712dca",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Overlapping subscriptions: QUICKFLEET GPS MONTHLY and FLEETTRACK PRO GPS",
+          "classification": "HYPOTHESIS",
+          "impactMinor": 53400,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2026-04-05",
+          "periodEnd": "2026-09-05",
+          "sourceRecordIds": [
+            "d5077426b43cbcad1b5af6920a286abcfaaa35dc9bb30fd3af866abced902d33",
+            "610800be0ce4f69abd96afc1bbc57aa58aa9d2789026c2c9aaeb2719ee47ab01",
+            "4aba92d6a3a7dd39283dab41e0d34529d87a3da426dc2000416e90abe060c677",
+            "afe92fca8b0686970d1d3a36cae76bb243dffd70474a46e9ca73558cc07b23ae",
+            "01e7cd1223edf991f18f15c5fa56d4d9e25763e28ce457b93557b68674d50a60",
+            "15a62c3d56806f61821327d95cc9434379f6fd103aea7dc71c7c8313f8031c99",
+            "302c9126de7a388110cf4de45f0131c3ad16c55f51ec1303c2b0e1038febc9b3",
+            "4c0bb354640e36e819817cd42b6700b0020e2a04bd58c589dc9a84058eb69d77",
+            "e8cee6c86fe22873c1015d6ebab7270b446b8cb23db1babccfe7356a1aa04431",
+            "d8dadadad3a9189da4848ad209691e8cea404695afc5f85dd5c81a9897dcebe7",
+            "a70b22918e8dae8a117f0f37c236129060f89ad3bc05dddb4680f2e37831eef3",
+            "77f8d720279245cfec597711976fb5908bf6d7cfe854186a4f7c03e07c821427"
+          ],
+          "syncIds": [
+            "8ff84298-48b3-45b0-8bda-531e69800f05"
+          ],
+          "sourceSystems": [
+            "Document upload: Credit card statement"
+          ],
+          "inputs": {
+            "pairs": 1
+          },
+          "formula": "sum of the cheaper subscription in each overlapping pair during overlapping months",
+          "assumptions": [],
+          "confounders": [
+            "A provider was replaced but the old subscription was never cancelled",
+            "Different staff signed up for similar tools"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.763Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": false,
+              "patternSample": true
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: not established",
+              "patternSample: satisfied",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Confirm which service the team actually uses and cancel the other in writing; ask for a refund of recent months."
+          ],
+          "prevention": [
+            "Cancel the old tool on the same day a replacement goes live.",
+            "Keep a subscription register reviewed quarterly."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": true
+        },
+        "recoverable": true,
+        "basis": "POSSIBLE",
+        "details": [
+          "QUICKFLEET GPS MONTHLY and FLEETTRACK PRO GPS (both \"gps\") were both charged in 6 months: 2026-04, 2026-05, 2026-06, 2026-07, 2026-08, 2026-09."
+        ],
+        "causes": [
+          "A provider was replaced but the old subscription was never cancelled",
+          "Different staff signed up for similar tools"
+        ],
+        "step": "bank_card"
+      },
+      {
+        "category": "price_creep",
+        "label": "Rising subscription / vendor prices",
+        "finding": {
+          "id": "7167500e309cbaef1f97a9317ed97e745f9c88526afe31715e619175dee1e8bf",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Rising recurring charges: 1 vendor(s) raised their price",
+          "classification": "CALCULATION",
+          "impactMinor": 30000,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2026-04-03",
+          "periodEnd": "2026-09-03",
+          "sourceRecordIds": [
+            "6832993b9fe61fb6865f3f76ccfc1d0e1ea3e46a0ad8411f1b012ad00d629a2c",
+            "649d3d5d8c45cf22bf10c227b4aeaa31f7c381dabac317fa6cdf34deb9df01fc",
+            "0c3dd56f2a0c290cbf48164f7d9c526acbaa69493bd2810a6ef3e75a8fc0f106",
+            "7a0f62141769fa9768eb351f7b20cda2e6ab05bc91d08d247295a3ad4b629f8b",
+            "a7676e2f1953e83e34521cc3d13b7519bb85fd19f77a2361c126e8b0a126962e",
+            "96ac791bd5ecdd1ec278113369c109b8e4101427701b52cabc8f2f018106af54"
+          ],
+          "syncIds": [
+            "8ff84298-48b3-45b0-8bda-531e69800f05"
+          ],
+          "sourceSystems": [
+            "Document upload: Credit card statement"
+          ],
+          "inputs": {
+            "vendors": 1
+          },
+          "formula": "sum over later months of (monthly charge - first monthly charge)",
+          "assumptions": [],
+          "confounders": [
+            "Plan upgrades or added seats nobody approved",
+            "Introductory pricing ended",
+            "Annual price increases accepted automatically"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.762Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": false,
+              "patternSample": false
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: not established",
+              "patternSample: not established",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Log in to each vendor and check plan, seats and add-ons; remove unused users.",
+            "Ask for the original price or an annual-prepay discount; get quotes from one alternative to negotiate."
+          ],
+          "prevention": [
+            "Keep a subscription list with owner, price and renewal date; review it quarterly.",
+            "Use one company card for subscriptions with alerts for any amount change."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": true
+        },
+        "recoverable": true,
+        "basis": "CALCULATED",
+        "details": [
+          "FIELDPRO SOFTWARE SUBSCRIPTION: $149.00/mo -> $249.00/mo (+67.1%); paid $300.00 more than the starting price. 2026-04 $149.00, 2026-05 $149.00, 2026-06 $199.00, 2026-07 $199.00, 2026-08 $249.00, 2026-09 $249.00"
+        ],
+        "causes": [
+          "Plan upgrades or added seats nobody approved",
+          "Introductory pricing ended",
+          "Annual price increases accepted automatically"
+        ],
+        "step": "bank_card"
+      },
+      {
+        "category": "revenue_trend",
+        "label": "Revenue trend",
+        "finding": {
+          "id": "5e1b137633a8bb069f52c03030eaf948660e4a04fdf7e80b85cbbc4b561be94b",
+          "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+          "title": "Revenue down 19.6%: last 3 months vs first 3 months",
+          "classification": "CALCULATION",
+          "impactMinor": 6640000,
+          "currency": "USD",
+          "decimals": 2,
+          "periodStart": "2025-10-01",
+          "periodEnd": "2026-09-30",
+          "sourceRecordIds": [
+            "7a42452a8a673161516610e7352483ab1f3a828baad6cab084cf4e8b937ef104",
+            "d1d3f1b67a993a368a1e67cf0f8632d68b218ce26401cfe8106d38b14773e8e5",
+            "63ac0b0b8b15b84bce31fa3bd7169008deaefab97d9ee69ee9c845b2aa115882",
+            "ba6cef07224ecd27620ce81667cfca4271c3e86ace590c251daf9fcbd94115b0",
+            "b574d88dc3272244a33757ec0ec802b4091ee9637bc7be0b42d7b137c2433f96",
+            "6eb374ed21b7a09b749daccec52d7c4b3c826fbe0134e9197081aec2c131b0ea"
+          ],
+          "syncIds": [
+            "2ff6d66f-8af7-48fc-9b0d-ba1b86750a53"
+          ],
+          "sourceSystems": [
+            "Document upload: Profit & loss"
+          ],
+          "inputs": {
+            "months": 12
+          },
+          "formula": "sum(revenue, first 3 months) - sum(revenue, last 3 months)",
+          "assumptions": [],
+          "confounders": [
+            "Seasonality (compare with the same months last year before concluding)",
+            "Fewer jobs booked or lower average ticket",
+            "Lost maintenance-agreement or commercial customers"
+          ],
+          "contradictions": [],
+          "method": "Deterministic money-leak engine over owner-reviewed document records",
+          "engineVersion": "evidence-1.0.0",
+          "createdAt": "2026-10-16T11:34:11.765Z",
+          "confidence": {
+            "level": "MEDIUM",
+            "criteria": {
+              "complete": true,
+              "fresh": true,
+              "providerVerified": false,
+              "traceable": true,
+              "independentSources": false,
+              "patternSample": false
+            },
+            "explanation": [
+              "complete: satisfied",
+              "fresh: satisfied",
+              "providerVerified: not established",
+              "traceable: satisfied",
+              "independentSources: not established",
+              "patternSample: not established",
+              "Confidence describes the recorded calculation, not a causal explanation or guaranteed recovery."
+            ]
+          },
+          "completeness": "Complete for the supplied source records; not the entire business.",
+          "recovery": [
+            "Compare job count and average ticket for the weakest months against the strongest months to see which one fell.",
+            "Run a maintenance-agreement and tune-up campaign aimed at the slow months."
+          ],
+          "prevention": [
+            "Track monthly revenue against the same month last year and a break-even target.",
+            "Book seasonal maintenance in advance so slow months have scheduled work."
+          ],
+          "measurementPlan": "Record the implementation date, comparable baseline and post-change data; review confounders before reporting impact.",
+          "opportunity": false
+        },
+        "recoverable": false,
+        "basis": "CALCULATED",
+        "details": [
+          "2025-10, 2025-11, 2025-12: $338,500.00 total revenue; 2026-07, 2026-08, 2026-09: $272,100.00.",
+          "Highest month 2025-12 $122,500.00; lowest month 2026-04 $71,100.00.",
+          "2025-10 $103,800.00",
+          "2025-11 $112,200.00",
+          "2025-12 $122,500.00",
+          "2026-01 $122,100.00",
+          "2026-02 $114,600.00",
+          "2026-03 $96,300.00",
+          "2026-04 $71,100.00",
+          "2026-05 $90,400.00",
+          "2026-06 $95,100.00",
+          "2026-07 $75,700.00",
+          "2026-08 $95,900.00",
+          "2026-09 $100,500.00"
+        ],
+        "causes": [
+          "Seasonality (compare with the same months last year before concluding)",
+          "Fewer jobs booked or lower average ticket",
+          "Lost maintenance-agreement or commercial customers"
+        ],
+        "step": "pnl"
+      }
+    ],
+    "checks": [
+      {
+        "category": "losing_months",
+        "label": "Losing months",
+        "status": "FOUND",
+        "note": "2 loss month(s) found.",
+        "step": "pnl"
+      },
+      {
+        "category": "cost_trend",
+        "label": "Cost categories trending up",
+        "status": "FOUND",
+        "note": "2 cost line(s) rising faster than revenue.",
+        "step": "pnl"
+      },
+      {
+        "category": "losing_jobs",
+        "label": "Unprofitable jobs",
+        "status": "FOUND",
+        "note": "3 losing job(s).",
+        "step": "job_costing"
+      },
+      {
+        "category": "underpriced_jobs",
+        "label": "Underpriced jobs / thin margins",
+        "status": "FOUND",
+        "note": "3 thin-margin job(s).",
+        "step": "job_costing"
+      },
+      {
+        "category": "processor_fees",
+        "label": "Payment processor fees",
+        "status": "FOUND",
+        "note": "Effective rate 3.5%.",
+        "step": "processor_fees"
+      },
+      {
+        "category": "overdue_invoices",
+        "label": "Unpaid and overdue invoices",
+        "status": "FOUND",
+        "note": "4 overdue invoice(s).",
+        "step": "invoices_ar"
+      },
+      {
+        "category": "duplicate_charges",
+        "label": "Duplicate charges",
+        "status": "FOUND",
+        "note": "2 possible duplicate(s).",
+        "step": "bank_card"
+      },
+      {
+        "category": "price_creep",
+        "label": "Rising subscription / vendor prices",
+        "status": "FOUND",
+        "note": "1 vendor(s) with rising charges.",
+        "step": "bank_card"
+      },
+      {
+        "category": "overlapping_subscriptions",
+        "label": "Overlapping subscriptions",
+        "status": "FOUND",
+        "note": "1 overlapping pair(s).",
+        "step": "bank_card"
+      },
+      {
+        "category": "overtime",
+        "label": "Overtime cost",
+        "status": "FOUND",
+        "note": "Overtime 14.1% of gross wages.",
+        "step": "payroll"
+      },
+      {
+        "category": "revenue_trend",
+        "label": "Revenue trend",
+        "status": "FOUND",
+        "note": "Revenue down 19.6% over 12 months.",
+        "step": "pnl"
+      },
+      {
+        "category": "vendor_concentration",
+        "label": "Vendor concentration",
+        "status": "NONE_FOUND",
+        "note": "20 vendors; largest is 18.8% of spend. Top 3: CHASE CARD AUTOPAY: $8,402.19 (18.8%); FERGUSON SUPPLY #4471 ACH: $4,836.74 (10.8%); RENT - GRANITE PROPERTIES: $4,500.00 (10.0%).",
+        "step": "bank_card"
+      },
+      {
+        "category": "technician_contribution",
+        "label": "Technician contribution",
+        "status": "FOUND",
+        "note": "1 technician(s) below median margin.",
+        "step": "job_costing"
+      },
+      {
+        "category": "callbacks",
+        "label": "Callbacks / rework",
+        "status": "FOUND",
+        "note": "2 callback job(s).",
+        "step": "job_costing"
+      },
+      {
+        "category": "marketing_return",
+        "label": "Marketing return by lead source",
+        "status": "FOUND",
+        "note": "2 source(s) below break-even.",
+        "step": "job_costing"
+      },
+      {
+        "category": "labor_utilization",
+        "label": "Labor utilization (billable vs paid hours)",
+        "status": "FOUND",
+        "note": "2 employee(s) below 70.0% billable.",
+        "step": "payroll"
+      }
+    ],
+    "totalRecoverableMinor": 4815518,
+    "bookedLossMinor": 2886000,
+    "currency": "USD",
+    "asOf": "2026-10-16",
+    "overlapNote": "Leaks can overlap (for example a rising software subscription is also part of the Software Subscriptions cost line), so the total is an upper estimate of money to recover, not a guaranteed saving. Losing months are reported separately because they are the result of the other leaks."
+  },
+  "commentary": {
+    "summary": "This money-leak review for the business owner highlights key areas where money is being lost. The most important is the losing months calculation with net_profit of -14120 and -14740. What is happening is net losses in those periods. Likely cause is rising expenses against lower revenue. Step-by-step fix: review all expenses in those periods, cut non-essential ones like certain vendor_spend, then adjust pricing and sales. Prevent by monthly budget reviews and forecasting. Next is overdue invoices with value 15415 from multiple invoice_contract where invoice_paid is 0. Likely cause is missing follow-up processes. Fix: contact each customer, send reminders, enforce terms. Prevent with upfront deposits. Other leaks like overtime, labor utilization, card processing fees, fuel, callbacks, unprofitable jobs and rising recurring charges follow similar patterns of inefficiency and require targeted fixes. One potential additional way money is lost not captured in calculations is large vendor_spend on certain dates.",
+    "facts": [
+      {
+        "text": "Losing months calculation shows net_profit of -14120 for period 2026-04-01 to 2026-04-30 and -14740 for period 2026-07-01 to 2026-07-31.",
+        "evidenceIds": [
+          "CALC-D2AEA6501D8A",
+          "EVID-BDCEB3321916",
+          "EVID-6427D9CB87DA"
+        ]
+      },
+      {
+        "text": "Overdue invoices calculation shows value 15415 from multiple invoice_contract with invoice_paid of 0.",
+        "evidenceIds": [
+          "CALC-FEEEE23D57CA",
+          "EVID-66D4100C29AF",
+          "EVID-4DA1CBE5CAF1",
+          "EVID-924A653313A3",
+          "EVID-006EEF7CC04D",
+          "EVID-663F94AD9239",
+          "EVID-01577B9E2018",
+          "EVID-882BE66E6B0D",
+          "EVID-EC7D21ECA220"
+        ]
+      },
+      {
+        "text": "Overtime calculation shows value 5614.25 with overtime_cost values such as 1026, 1254, 1140, 1368, 1083 and 1197.",
+        "evidenceIds": [
+          "CALC-20EE7515D136",
+          "EVID-5D5FEFFAF61B",
+          "EVID-3DEC7E41D4BD",
+          "EVID-07DA516352CF",
+          "EVID-C8D25C943349",
+          "EVID-3D4EEA475064",
+          "EVID-C141F9A5035C"
+        ]
+      },
+      {
+        "text": "Labor utilization calculation for Jake Lindgren and Marcus Olson shows value 5529.35 with varying hours values.",
+        "evidenceIds": [
+          "CALC-8E5B2A0DE31C",
+          "EVID-991F6F33A59B",
+          "EVID-782A6177D39F",
+          "EVID-CD69A27C4FA9",
+          "EVID-0B049642756A"
+        ]
+      },
+      {
+        "text": "Card processing fees calculation shows value 3744.54 with fees values such as 1766.93, 1906.03, 2076.6.",
+        "evidenceIds": [
+          "CALC-F42446FC632C",
+          "EVID-1BF0FBF68FD8",
+          "EVID-C6F6EF9CD690",
+          "EVID-D01785C61CE9"
+        ]
+      },
+      {
+        "text": "Fuel calculation shows value 3110 while revenue was 103800, 112200, 122500 then 75700, 95900, 100500.",
+        "evidenceIds": [
+          "CALC-F35D82AB0322",
+          "CALC-01482B87CCD0",
+          "EVID-12D0C9CFCB2A",
+          "EVID-86BD6AB920E4",
+          "EVID-B6F1647750AC",
+          "EVID-9D7242798289"
+        ]
+      },
+      {
+        "text": "Possible duplicate charges hypothesis shows value 3030.85 with repeated vendor_spend of 612.48 and 2418.37.",
+        "evidenceIds": [
+          "CALC-696BF526288C",
+          "EVID-62B086535B5E",
+          "EVID-1E6B78BFB70B",
+          "EVID-25C05075CEA5",
+          "EVID-28AA97D7B279"
+        ]
+      },
+      {
+        "text": "Rising recurring charges calculation shows value 300 with vendor_spend rising from 149 to 249.",
+        "evidenceIds": [
+          "CALC-1EF34A26C4E1",
+          "EVID-6ED08D452644",
+          "EVID-FEB205378FB7",
+          "EVID-6ABF27588B13"
+        ]
+      }
+    ],
+    "patterns": [
+      {
+        "text": "Multiple periods show job_revenue lower than job_labor plus job_materials for the same jobs.",
+        "evidenceIds": [
+          "CALC-5936D8356F1B",
+          "EVID-1A815EDC9B51",
+          "EVID-442F4F1E380A",
+          "EVID-1F19A2A1F9FF",
+          "EVID-9420DE578E6E",
+          "EVID-3D7CDC8D648B",
+          "EVID-BC2DF6BC64E0"
+        ]
+      },
+      {
+        "text": "Software subscription expenses and fuel expenses both trend upward across the full period.",
+        "evidenceIds": [
+          "CALC-3CCEFFE982F3",
+          "CALC-F35D82AB0322",
+          "EVID-BFB6A6AC87DC",
+          "EVID-E813AF9480F5",
+          "EVID-12D0C9CFCB2A",
+          "EVID-86BD6AB920E4"
+        ]
+      },
+      {
+        "text": "Several invoice_contract have corresponding invoice_paid of 0 in the same periods.",
+        "evidenceIds": [
+          "EVID-4DA1CBE5CAF1",
+          "EVID-01577B9E2018",
+          "EVID-924A653313A3",
+          "EVID-882BE66E6B0D",
+          "EVID-03DB336E258D",
+          "EVID-10C4201B829B"
+        ]
+      },
+      {
+        "text": "Vendor_spend records show repeated identical values on nearby dates and overlapping subscriptions.",
+        "evidenceIds": [
+          "CALC-8B2DD8C2F839",
+          "EVID-E855200A3F3F",
+          "EVID-54406F4321BA",
+          "EVID-62B086535B5E",
+          "EVID-25C05075CEA5"
+        ]
+      }
+    ],
+    "hypotheses": [
+      {
+        "text": "Net losses in the two months are caused by rising expenses in multiple categories outpacing revenue.",
+        "evidenceIds": [
+          "CALC-D2AEA6501D8A",
+          "CALC-F35D82AB0322",
+          "CALC-3CCEFFE982F3"
+        ],
+        "confidence": "MEDIUM",
+        "alternatives": [
+          "One-time unrecorded costs in those specific months",
+          "Seasonal demand drop not captured in data"
+        ]
+      },
+      {
+        "text": "Overdue invoices with value 15415 result from lack of systematic follow-up after sending invoice_contract.",
+        "evidenceIds": [
+          "CALC-FEEEE23D57CA"
+        ],
+        "confidence": "HIGH",
+        "alternatives": [
+          "Customer disputes over job quality or pricing",
+          "Internal delays in issuing invoices"
+        ]
+      },
+      {
+        "text": "Overtime and low labor utilization stem from inefficient scheduling of jobs to available technicians.",
+        "evidenceIds": [
+          "CALC-20EE7515D136",
+          "CALC-8E5B2A0DE31C"
+        ],
+        "confidence": "MEDIUM",
+        "alternatives": [
+          "Unexpected urgent callbacks requiring extra hours",
+          "Inaccurate hours tracking in records"
+        ]
+      },
+      {
+        "text": "Card processing fees exceed target due to payment mix or processor rates not optimized.",
+        "evidenceIds": [
+          "CALC-F42446FC632C"
+        ],
+        "confidence": "MEDIUM",
+        "alternatives": [
+          "High volume of certain card types from customers",
+          "No negotiated merchant rates"
+        ]
+      },
+      {
+        "text": "Large vendor_spend on 2026-09-19 and 2026-09-05 may indicate additional money leaks missed by calculations. Insufficient data to determine this reliably.",
+        "evidenceIds": [
+          "EVID-D73FA9FF0C71",
+          "EVID-7D0FC508CBD6",
+          "EVID-CCF12EA15621"
+        ],
+        "confidence": "LOW",
+        "alternatives": [
+          "These are valid job-related costs already reflected in other records",
+          "One-off equipment purchases"
+        ]
+      }
+    ],
+    "recommendations": [
+      {
+        "text": "Contact customers for all past due invoices immediately and set up automated reminders to collect the value 15415 faster.",
+        "evidenceIds": [
+          "CALC-FEEEE23D57CA"
+        ]
+      },
+      {
+        "text": "Review all expenses during the periods with net_profit of -14120 and -14740 then reduce recurring ones to stop future losses.",
+        "evidenceIds": [
+          "CALC-D2AEA6501D8A"
+        ]
+      },
+      {
+        "text": "Improve job scheduling to cut overtime_cost and raise billable hours for Jake Lindgren and Marcus Olson.",
+        "evidenceIds": [
+          "CALC-20EE7515D136",
+          "CALC-8E5B2A0DE31C"
+        ]
+      },
+      {
+        "text": "Shop for new card processors or negotiate rates to bring fees down from the current level.",
+        "evidenceIds": [
+          "CALC-F42446FC632C"
+        ]
+      },
+      {
+        "text": "Audit and cancel overlapping subscriptions such as QUICKFLEET GPS MONTHLY and FLEETTRACK PRO GPS to avoid duplicate payments.",
+        "evidenceIds": [
+          "CALC-8B2DD8C2F839"
+        ]
+      },
+      {
+        "text": "Create and follow a job pricing guide to prevent underpriced jobs and ensure revenue covers labor and materials.",
+        "evidenceIds": [
+          "CALC-8A7D16819F5A",
+          "CALC-5936D8356F1B"
+        ]
+      },
+      {
+        "text": "Monitor fuel expenses per job and optimize routes or equipment to control costs that rose over the period.",
+        "evidenceIds": [
+          "CALC-F35D82AB0322"
+        ]
+      },
+      {
+        "text": "Verify every vendor_spend against invoices and job records to eliminate any duplicate charges going forward.",
+        "evidenceIds": [
+          "CALC-696BF526288C"
+        ]
+      }
+    ],
+    "additionalDataNeeded": [
+      "Itemized descriptions and purposes for all large vendor_spend entries",
+      "Customer communication logs for overdue invoices",
+      "Detailed job assignment and scheduling records",
+      "Breakdown of what each payroll_cost and overtime_cost covers per technician"
+    ],
+    "confidence": "MEDIUM",
+    "limitations": [
+      "Several calculations are classified as estimates rather than deterministic.",
+      "All source data is owner entered and may contain entry errors.",
+      "No causal data or notes explaining why losses or inefficiencies occurred.",
+      "Limited periods covered prevent seeing longer-term trends reliably."
+    ],
+    "questionsForOwner": [
+      "What specific events or costs led to the net losses in those two months?",
+      "What is the current process for following up on unpaid invoices?",
+      "How are jobs assigned to technicians like Jake Lindgren and Marcus Olson?",
+      "Are there any unlisted reasons for the repeated vendor charges seen in the data?"
+    ]
+  }
+}

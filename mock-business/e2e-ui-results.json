@@ -1,0 +1,331 @@
+{
+  "businessId": "768bfe16-8465-4689-8a71-dcb08d3d2aed",
+  "name": "Northstar Plumbing & Heating (mock v3)",
+  "at": "2026-10-16T11:58:19.008Z",
+  "results": [
+    {
+      "area": "Pages",
+      "name": "Overview (/)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "name": "Smart Analysis (/smart-analysis)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "name": "Financials (/financials)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "name": "Profit Leaks (/leaks)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "name": "Opportunities (/opportunities)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "name": "Money Found (/money-found)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "name": "Recommendations (/recommendations)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "name": "Decisions (/decisions)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "name": "Results (/results)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "name": "AI Analyst (/analyst)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "name": "Integrations & CSV (/integrations)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "name": "Data Intake (/data-intake)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "name": "Settings (/settings)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "name": "Demo sandbox (/demo)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Data Intake",
+      "name": "analysis checklist: all 10 analyses Ready, none Recommended/Optional",
+      "pass": true,
+      "detail": "10 ready, 0 recommended, 0 optional"
+    },
+    {
+      "area": "Data Intake",
+      "name": "no errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "area": "Decisions",
+      "name": "record a decision on a finding (saved to the mock workspace)",
+      "pass": true,
+      "detail": "Decision saved.; 4 decision(s) in mock workspace"
+    },
+    {
+      "area": "Decisions",
+      "name": "decision listed on Decisions page",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "area": "Money Found",
+      "name": "start tracking an opportunity (ledger stage POTENTIAL)",
+      "pass": true,
+      "detail": "1 ledger item(s)"
+    },
+    {
+      "area": "Decisions",
+      "name": "no errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "area": "AI Analyst",
+      "name": "ask a question about the mock workspace (live Grok answer rendered)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "area": "Integrations",
+      "name": "parse & validate a CSV (no import)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "area": "Settings",
+      "name": "settings loads the selected workspace name",
+      "pass": true,
+      "detail": "Northstar Plumbing & Heating (mock v3)"
+    },
+    {
+      "area": "Settings",
+      "name": "save profile",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "area": "Setup guide",
+      "name": "walk every step of the setup guide",
+      "pass": true,
+      "detail": "12 steps; "
+    },
+    {
+      "area": "API",
+      "name": "GET /api/intake/businesses",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "API",
+      "name": "GET /api/intake",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "API",
+      "name": "GET /api/intake unknown workspace -> 400",
+      "pass": true,
+      "detail": "HTTP 400 Unknown business workspace."
+    },
+    {
+      "area": "API",
+      "name": "GET /api/evidence (mock)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "API",
+      "name": "GET /api/evidence unknown -> 400",
+      "pass": true,
+      "detail": "HTTP 400 Unknown business workspace."
+    },
+    {
+      "area": "API",
+      "name": "GET /api/decisions (mock)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "API",
+      "name": "GET /api/money-found (mock)",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "API",
+      "name": "GET /api/documents",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "API",
+      "name": "GET /api/smart-analysis",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "API",
+      "name": "GET /api/integrations",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "API",
+      "name": "GET /api/integrations/qbo/status",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "API",
+      "name": "GET /api/business",
+      "pass": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "API",
+      "name": "GET /api/import (demo isolated) -> 410",
+      "pass": true,
+      "detail": "HTTP 410 Demo samples are isolated at /demo."
+    },
+    {
+      "area": "API",
+      "name": "POST /api/import bad JSON -> 400",
+      "pass": true,
+      "detail": "HTTP 400 Request body must be JSON with csvContent."
+    },
+    {
+      "area": "API",
+      "name": "POST /api/analyst empty -> 4xx",
+      "pass": true,
+      "detail": "HTTP 400 Ask a question of up to 1,000 characters."
+    },
+    {
+      "area": "API",
+      "name": "POST /api/decisions invalid -> 400",
+      "pass": true,
+      "detail": "HTTP 400 A current evidence-backed finding is required."
+    },
+    {
+      "area": "API",
+      "name": "PATCH /api/money-found invalid -> 400",
+      "pass": true,
+      "detail": "HTTP 400 This observation is not a quantified savings opportunity."
+    },
+    {
+      "area": "API",
+      "name": "POST /api/documents/commit unknown doc -> 4xx",
+      "pass": true,
+      "detail": "HTTP 404 Unknown document for this workspace."
+    },
+    {
+      "area": "API",
+      "name": "POST /api/documents no files -> 400",
+      "pass": true,
+      "detail": "HTTP 400 Upload between 1 and 20 files at a time."
+    },
+    {
+      "area": "API",
+      "name": "POST /api/smart-analysis unknown -> 400",
+      "pass": true,
+      "detail": "HTTP 400 Choose a valid business workspace."
+    },
+    {
+      "area": "API",
+      "name": "PATCH /api/intake/businesses bad name -> 400",
+      "pass": true,
+      "detail": "HTTP 400 Business name must be 1-120 characters."
+    },
+    {
+      "area": "API",
+      "name": "POST /api/intake/commit invalid -> 400",
+      "pass": true,
+      "detail": "HTTP 400 Upload, worksheet and reviewed mappings are required."
+    },
+    {
+      "area": "API",
+      "name": "POST /api/intake/duplicates/resolve invalid -> 400",
+      "pass": true,
+      "detail": "HTTP 400 Record, business and review decision are required."
+    },
+    {
+      "area": "API",
+      "name": "POST /api/intake/imports/remove invalid -> 400",
+      "pass": true,
+      "detail": "HTTP 400 Import and business IDs are required."
+    },
+    {
+      "area": "API",
+      "name": "POST /api/integrations no id -> 400",
+      "pass": true,
+      "detail": "HTTP 400 Provider ID required."
+    },
+    {
+      "area": "API",
+      "name": "cross-origin write rejected",
+      "pass": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "area": "API",
+      "name": "GET /api/integrations/qbo/connect (no credentials) -> not 5xx",
+      "pass": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "area": "API",
+      "name": "GET /api/integrations/qbo/callback (no state) -> 4xx/redirect",
+      "pass": true,
+      "detail": "HTTP 307"
+    },
+    {
+      "area": "Safety",
+      "name": "default workspace \"My Business\" unchanged (record count)",
+      "pass": true,
+      "detail": "348 -> 348"
+    }
+  ]
+}

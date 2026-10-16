@@ -9,7 +9,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 const BASE = process.env.BIZBETTER_URL || 'http://127.0.0.1:3000';
-const NAME = 'Northstar Plumbing & Heating (mock)';
+const NAME = process.env.BIZBETTER_MOCK_NAME || 'Northstar Plumbing & Heating (mock)';
 const INDUSTRY = 'Plumbing & HVAC contractor';
 const dir = path.join(process.cwd(), 'mock-business', 'northstar');
 const api = async (p: string, init?: RequestInit) => { const r = await fetch(BASE + p, { ...init, headers: { Origin: BASE, ...(init?.headers || {}) } }); const d = await r.json(); if (!r.ok) throw Object.assign(new Error(d.error || r.statusText), { status: r.status }); return d; };
@@ -44,11 +44,16 @@ async function main() {
   const amt = (c: string) => res.report.leaks.filter((l: { category: string }) => l.category === c).reduce((s: number, l: { finding: { impactMinor: number | null } }) => s + (l.finding.impactMinor ?? 0), 0);
   const want: Array<[string, string, number]> = [['Losing months', 'losing_months', exp.losing_months.total_loss], ['Losing jobs', 'losing_jobs', exp.losing_jobs.total], ['Overdue invoices', 'overdue_invoices', exp.overdue_invoices.total],
     ['Duplicate charges', 'duplicate_charges', exp.duplicate_bank_charge.amount + exp.duplicate_card_charge.amount], ['Subscription price creep', 'price_creep', exp.subscription_creep.excess_over_first], ['Overlapping GPS subscriptions', 'overlapping_subscriptions', 534],
-    ['Overtime premium', 'overtime', exp.overtime.overtime_premium_estimate], ['Processor fee excess', 'processor_fees', exp.processor_fees.excess_over_2_9pct], ['Fuel + software cost trend', 'cost_trend', 3110 + 1050]];
+    ['Overtime premium', 'overtime', exp.overtime.overtime_premium_estimate], ['Processor fee excess', 'processor_fees', exp.processor_fees.excess_over_2_9pct], ['Fuel + software cost trend', 'cost_trend', 3110 + 1050],
+    ['Revenue decline (first vs last 3 months)', 'revenue_trend', exp.revenue_trend.decline], ['Technician contribution gap', 'technician_contribution', exp.technician_contribution.total], ['Callbacks', 'callbacks', exp.callbacks.total],
+    ['Marketing below break-even', 'marketing_return', exp.marketing_return.total], ['Labor utilization gap', 'labor_utilization', exp.labor_utilization.total]];
   let fail = 0; console.log('\nPlanted vs found:');
   for (const [label, cat, dollars] of want) { const got = amt(cat), okk = got === Math.round(dollars * 100); if (!okk) fail++; console.log(`  ${okk ? 'OK  ' : 'MISS'} ${label.padEnd(30)} planted ${usd(Math.round(dollars * 100)).padStart(11)}  found ${usd(got).padStart(11)}`); }
   const under = res.report.leaks.find((l: { category: string }) => l.category === 'underpriced_jobs'); const uj = exp.underpriced_jobs.jobs.filter((j: string) => under?.details.some((d: string) => d.startsWith(j)));
   console.log(`  ${uj.length === 3 ? 'OK  ' : 'MISS'} Underpriced jobs ${exp.underpriced_jobs.jobs.join(', ')} -> found ${uj.join(', ')} (${usd(under?.finding.impactMinor ?? null)} estimated)`); if (uj.length !== 3) fail++;
+  const caps = (await api('/api/intake?businessId=' + biz.id)).capabilities as { analyses: Array<{ name: string; status: string; missing: string[] }> };
+  console.log('\nAnalysis readiness (Data Intake checklist):'); for (const a of caps.analyses) { console.log(`  ${a.status === 'AVAILABLE' ? 'OK  ' : 'MISS'} ${a.name.padEnd(26)} ${a.status}${a.missing.length ? ' - ' + a.missing.join(' ') : ''}`); if (a.status !== 'AVAILABLE') fail++; }
+  const vc = res.report.checks.find((c: { category: string }) => c.category === 'vendor_concentration'); console.log(`  ${vc && vc.status !== 'NOT_ENOUGH_DATA' ? 'OK  ' : 'MISS'} Vendor concentration check: ${vc?.status} - ${vc?.note}`); if (!vc || vc.status === 'NOT_ENOUGH_DATA') fail++;
   if (res.status !== 'AI_ANALYSIS') { console.log('Grok commentary missing'); fail++; }
   else console.log(`\nGrok summary: ${res.answer.summary}\nGrok recommendations: ${res.answer.recommendations.length}, hypotheses: ${res.answer.hypotheses.length}\n` + res.answer.hypotheses.map((h: { text: string }) => '  - ' + h.text).join('\n'));
   console.log(`\nOpen: ${BASE}/smart-analysis?businessId=${biz.id}`);

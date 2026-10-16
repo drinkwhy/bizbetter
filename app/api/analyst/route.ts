@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { assertLocal } from '@/lib/evidence/access';
 import { BUSINESS_ID, workspace } from '@/lib/evidence/repository';
-import { buildEvidence, callAIProvider, fallback, validateAnswer, type Depth } from '@/lib/ai/gateway';
+import { buildEvidence, callAIProvider, fallback, type Depth } from '@/lib/ai/gateway';
+import { salvageAnswer } from '@/lib/smart-analysis/run';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const maxDuration = 300;
 
 const calls = new Map<string, number[]>();
 const cache = new Map<string, { at: number; value: unknown }>();
@@ -51,10 +53,14 @@ export async function POST(req: NextRequest) {
     let answer;
     let provider = 'DETERMINISTIC';
     let model: string | null = null;
+    let removed = 0;
     try {
-      const result = await callAIProvider(pack.context, depth);
+      // The default 20 s gateway timeout is too short for Grok; use a model sized to the depth and a realistic timeout.
+      const result = await callAIProvider(pack.context, depth, { timeoutMs: Number(process.env.BIZBETTER_ANALYST_TIMEOUT_MS) || 150_000, maxOutputTokens: 6000,
+        grokModel: process.env.BIZBETTER_ANALYST_MODEL || process.env.BIZBETTER_AI_GROK_MODEL || (depth === 'FAST' ? 'grok-4.20-0309-non-reasoning' : 'grok-4.20-0309-reasoning') });
       if (result) {
-        answer = validateAnswer(result.value, pack.items);
+        // Statements with numbers not in the evidence are removed (and counted) instead of discarding the whole answer.
+        const salvaged = salvageAnswer(result.value, pack.items); answer = salvaged.answer; removed = salvaged.removed;
         provider = result.provider;
         model = result.model;
       } else {
@@ -75,6 +81,7 @@ export async function POST(req: NextRequest) {
     const response = {
       status: provider !== 'DETERMINISTIC' ? 'AI_ANALYSIS' : 'AI_NOT_CONFIGURED',
       provider, model, depth, businessId, fingerprint: pack.fingerprint,
+      notes: removed ? [`${removed} AI statement(s) were removed because they contained numbers not found in the evidence.`] : [],
       generatedAt: new Date().toISOString(), versions, answer, evidence: pack.items,
     };
     cache.set(key, { at: now, value: response });

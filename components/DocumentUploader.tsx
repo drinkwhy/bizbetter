@@ -65,6 +65,7 @@ export function DocumentUploader({ businessId, onChange }: { businessId: string;
               {ai && <label className="text-xs flex items-center gap-1"><input type="checkbox" checked={e.confirm} onChange={(x) => setEd(doc.id, { confirm: x.target.checked })} />I checked these AI-read values against the file</label>}
               <button onClick={() => commitOne(doc)} disabled={!!busy || (ai && !e.confirm)} className="rounded bg-sky-600 px-3 py-1 disabled:opacity-50">{DOC_KINDS[kind].carriesRecords ? 'Confirm & import' : 'Keep as context'}</button>
               <button onClick={() => discard(doc)} className="text-xs text-slate-400 underline">Discard</button></div>}
+            {!editable && doc.status !== 'COMMITTED' && <div><button onClick={() => discard(doc)} className="text-xs text-slate-400 underline">Discard</button></div>}
           </li>); })}
       </ul>
     </section>);

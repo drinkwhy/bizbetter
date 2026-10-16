@@ -3,7 +3,8 @@ import type { Finding, NormalizedBusinessRecord, SourceRecord } from '@/lib/evid
 import type { GuidedStepId } from '@/lib/smart-analysis/steps';
 import { vendorKey } from '@/lib/documents/records';
 
-export type LeakCategory = 'losing_months' | 'losing_jobs' | 'underpriced_jobs' | 'processor_fees' | 'overdue_invoices' | 'duplicate_charges' | 'price_creep' | 'overlapping_subscriptions' | 'overtime' | 'cost_trend';
+export type LeakCategory = 'losing_months' | 'losing_jobs' | 'underpriced_jobs' | 'processor_fees' | 'overdue_invoices' | 'duplicate_charges' | 'price_creep' | 'overlapping_subscriptions' | 'overtime' | 'cost_trend'
+  | 'revenue_trend' | 'vendor_concentration' | 'technician_contribution' | 'labor_utilization' | 'marketing_return' | 'callbacks';
 export type LeakBasis = 'CALCULATED' | 'ESTIMATE' | 'POSSIBLE';
 export interface Leak { category: LeakCategory; label: string; finding: Finding; recoverable: boolean; basis: LeakBasis; details: string[]; causes: string[]; step: GuidedStepId }
 export interface LeakCheck { category: LeakCategory; label: string; status: 'FOUND' | 'NONE_FOUND' | 'NOT_ENOUGH_DATA'; note: string; step: GuidedStepId }
@@ -13,6 +14,8 @@ const LABEL: Record<LeakCategory, [string, GuidedStepId]> = {
   losing_months: ['Losing months', 'pnl'], losing_jobs: ['Unprofitable jobs', 'job_costing'], underpriced_jobs: ['Underpriced jobs / thin margins', 'job_costing'],
   processor_fees: ['Payment processor fees', 'processor_fees'], overdue_invoices: ['Unpaid and overdue invoices', 'invoices_ar'], duplicate_charges: ['Duplicate charges', 'bank_card'],
   price_creep: ['Rising subscription / vendor prices', 'bank_card'], overlapping_subscriptions: ['Overlapping subscriptions', 'bank_card'], overtime: ['Overtime cost', 'payroll'], cost_trend: ['Cost categories trending up', 'pnl'],
+  revenue_trend: ['Revenue trend', 'pnl'], vendor_concentration: ['Vendor concentration', 'bank_card'], technician_contribution: ['Technician contribution', 'job_costing'],
+  labor_utilization: ['Labor utilization (billable vs paid hours)', 'payroll'], marketing_return: ['Marketing return by lead source', 'job_costing'], callbacks: ['Callbacks / rework', 'job_costing'],
 };
 export const usd = (minor: number) => (minor < 0 ? '-' : '') + '$' + (Math.abs(minor) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
@@ -218,7 +221,100 @@ export function runLeakEngines(input: { normalized: NormalizedBusinessRecord[]; 
       check('overtime', 'FOUND', `Overtime ${pct(share)} of gross wages.`); }
   }
 
-  leaks.sort((a, b) => (b.finding.impactMinor ?? -1) - (a.finding.impactMinor ?? -1));
+  // ---- Revenue trend (P&L) ----
+  { const ms = Array.from(income.keys()).sort();
+    if (ms.length < 8) check('revenue_trend', 'NOT_ENOUGH_DATA', `Needs at least 8 months of P&L income totals; ${ms.length} provided.`);
+    else { const f3 = ms.slice(0, 3), l3 = ms.slice(-3); const a = f3.reduce((x, m) => x + income.get(m)!, 0), b = l3.reduce((x, m) => x + income.get(m)!, 0); const g = a > 0 ? (b - a) / a : 0;
+      const hi = ms.reduce((x, m) => (income.get(m)! > income.get(x)! ? m : x)), lo = ms.reduce((x, m) => (income.get(m)! < income.get(x)! ? m : x));
+      const revRows = pnl.filter((r) => str(r.normalizedValues.section) === 'total_income' || (!str(r.normalizedValues.section) && cents(r.normalizedValues.revenue) !== null));
+      if (g > -0.10) check('revenue_trend', 'NONE_FOUND', `Revenue changed ${pct(g)} (first 3 vs last 3 of ${ms.length} months); highest ${hi} ${usd(income.get(hi)!)}, lowest ${lo} ${usd(income.get(lo)!)}.`);
+      else { push('revenue_trend', { title: `Revenue down ${pct(-g)}: last 3 months vs first 3 months`, cited: cite(revRows.filter((r) => [...f3, ...l3].includes(str(r.normalizedValues.date).slice(0, 7))), ['revenue']), impact: a - b, formula: 'sum(revenue, first 3 months) - sum(revenue, last 3 months)', inputs: { months: ms.length }, basis: 'CALCULATED', recoverable: false,
+          details: [`${f3.join(', ')}: ${usd(a)} total revenue; ${l3.join(', ')}: ${usd(b)}.`, `Highest month ${hi} ${usd(income.get(hi)!)}; lowest month ${lo} ${usd(income.get(lo)!)}.`, ...ms.map((m) => `${m} ${usd(income.get(m)!)}`)],
+          causes: ['Seasonality (compare with the same months last year before concluding)', 'Fewer jobs booked or lower average ticket', 'Lost maintenance-agreement or commercial customers'],
+          recovery: ['Compare job count and average ticket for the weakest months against the strongest months to see which one fell.', 'Run a maintenance-agreement and tune-up campaign aimed at the slow months.'],
+          prevention: ['Track monthly revenue against the same month last year and a break-even target.', 'Book seasonal maintenance in advance so slow months have scheduled work.'] });
+        check('revenue_trend', 'FOUND', `Revenue down ${pct(-g)} over ${ms.length} months.`); } } }
+
+  // ---- Vendor concentration (bank/card/receipts) ----
+  { const spend = rows.filter((r) => ['bank_statement', 'card_statement', 'receipt'].includes(kindOf(r)) && cents(r.normalizedValues.expense) !== null);
+    const by = new Map<string, { name: string; sum: number; rows: NormalizedBusinessRecord[] }>();
+    // Payroll, taxes, transfers, loans, card payments and owner draws are not suppliers.
+    const NOT_SUPPLIER = /payroll|gusto|adp|paychex|\birs\b|eftps|tax|transfer|xfer|loan|card payment|credit card|autopay amex|owner|draw|deposit/i;
+    for (const r of spend) { const k = str(r.normalizedValues.vendor_key) || vendorKey(str(r.normalizedValues.vendor)); if (!k || NOT_SUPPLIER.test(str(r.normalizedValues.vendor))) continue; const v = by.get(k) || { name: str(r.normalizedValues.vendor), sum: 0, rows: [] }; v.sum += cents(r.normalizedValues.expense)!; v.rows.push(r); by.set(k, v); }
+    const total = Array.from(by.values()).reduce((x, v) => x + v.sum, 0); const top = Array.from(by.values()).sort((a, b) => b.sum - a.sum);
+    if (by.size < 5 || total <= 0) check('vendor_concentration', 'NOT_ENOUGH_DATA', `Needs bank or card charges from at least 5 vendors; ${by.size} found.`);
+    else { const share = top[0].sum / total; const top3 = top.slice(0, 3);
+      const summary = top3.map((v) => `${v.name}: ${usd(v.sum)} (${pct(v.sum / total)})`).join('; ');
+      if (share < 0.25) check('vendor_concentration', 'NONE_FOUND', `${by.size} vendors; largest is ${pct(share)} of spend. Top 3: ${summary}.`);
+      else { push('vendor_concentration', { title: `Vendor concentration: ${top[0].name} is ${pct(share)} of card/bank spend`, cited: cite(top[0].rows, ['vendor_spend']), impact: null, formula: 'vendor spend / total outflows in uploaded bank, card and receipt records', inputs: { vendors: by.size, total_spend: total }, basis: 'POSSIBLE', recoverable: true,
+          details: [`${by.size} vendors, ${usd(total)} total outflows. Top 3: ${summary}.`], causes: ['One supplier used out of habit without competing quotes', 'Volume discounts never negotiated'],
+          recovery: ['Ask the top supplier for a contractor volume discount and get one competing quote for your 20 most-used parts.'], prevention: ['Re-quote the top three suppliers once a year.'], assumptions: ['No dollar saving is claimed: it depends on quotes you have not received yet.'] });
+        check('vendor_concentration', 'FOUND', `Largest vendor ${pct(share)} of spend.`); } } }
+
+  // ---- Jobs: technician contribution, callbacks, marketing return ----
+  const costedJobs = of('job_costing').filter((r) => cents(r.normalizedValues.revenue) !== null && cents(r.normalizedValues.labor_cost) !== null);
+  const margin = (r: NormalizedBusinessRecord) => cents(r.normalizedValues.revenue)! - cents(r.normalizedValues.labor_cost)! - (cents(r.normalizedValues.material_cost) ?? 0);
+  { const withTech = costedJobs.filter((r) => str(r.normalizedValues.technician)); const by = new Map<string, { rev: number; m: number; rows: NormalizedBusinessRecord[] }>();
+    for (const r of withTech) { const t = str(r.normalizedValues.technician); const v = by.get(t) || { rev: 0, m: 0, rows: [] }; v.rev += cents(r.normalizedValues.revenue)!; v.m += margin(r); v.rows.push(r); by.set(t, v); }
+    if (!costedJobs.length) check('technician_contribution', 'NOT_ENOUGH_DATA', 'Upload job costing with revenue, labor and material cost per job.');
+    else if (by.size < 3) check('technician_contribution', 'NOT_ENOUGH_DATA', by.size ? `Needs jobs from at least 3 technicians; ${by.size} found.` : 'Job costing has no Technician column; add the technician who did each job.');
+    else { const rates = Array.from(by.entries()).filter(([, v]) => v.rev > 0).map(([t, v]) => [t, v.m / v.rev] as const); const med = median(rates.map(([, x]) => x));
+      const low = rates.filter(([, x]) => x < med - 0.10).map(([t, x]) => ({ t, x, gap: Math.round(by.get(t)!.rev * (med - x)) }));
+      const table = rates.map(([t, x]) => `${t}: ${by.get(t)!.rows.length} jobs, revenue ${usd(by.get(t)!.rev)}, contribution ${usd(by.get(t)!.m)} (${pct(x)})`);
+      if (!low.length) check('technician_contribution', 'NONE_FOUND', `No technician is more than 10 points below the median contribution margin of ${pct(med)}.`);
+      else { push('technician_contribution', { title: `Technician contribution: ${low.map((l) => l.t).join(', ')} below the team median margin`, cited: cite(low.flatMap((l) => by.get(l.t)!.rows), ['job_revenue', 'job_labor', 'job_materials']), impact: low.reduce((x, l) => x + l.gap, 0), formula: 'sum over technicians more than 10 points below median of revenue x (median margin - technician margin)', inputs: { technicians: by.size, median_margin_bp: Math.round(med * 10000) }, basis: 'ESTIMATE', recoverable: true,
+          details: [...low.map((l) => `${l.t}: margin ${pct(l.x)} vs team median ${pct(med)}; ${usd(l.gap)} below median on ${usd(by.get(l.t)!.rev)} of revenue.`), ...table],
+          causes: ['Assigned the job types that are underpriced (check the underpriced jobs leak)', 'More hours per job than other techs', 'Discounts or free return visits'],
+          recovery: ['Review this technician\'s jobs one by one: compare hours and materials with the same job type done by others.', 'Fix pricing on the job types they are assigned before judging the technician.'],
+          prevention: ['Report contribution margin by technician monthly.', 'Pair newer techs with a senior tech on the job types where they lose margin.'], assumptions: ['Overlaps with the losing-jobs and underpriced-jobs leaks; uses only uploaded jobs.'] });
+        check('technician_contribution', 'FOUND', `${low.length} technician(s) below median margin.`); } } }
+  { const flagged = costedJobs.filter((r) => r.normalizedValues.callback_indicator === 'yes'); const hasCol = costedJobs.some((r) => r.normalizedValues.callback_indicator === 'yes' || r.normalizedValues.callback_indicator === 'no');
+    if (!hasCol) check('callbacks', 'NOT_ENOUGH_DATA', costedJobs.length ? 'Job costing has no Callback / rework column; mark return visits so their cost can be counted.' : 'Upload job costing with a Callback column.');
+    else if (!flagged.length) check('callbacks', 'NONE_FOUND', `No callbacks marked in ${costedJobs.length} jobs.`);
+    else { const cost = (r: NormalizedBusinessRecord) => cents(r.normalizedValues.labor_cost)! + (cents(r.normalizedValues.material_cost) ?? 0); const total = flagged.reduce((x, r) => x + cost(r), 0);
+      push('callbacks', { title: `Callbacks: ${flagged.length} of ${costedJobs.length} jobs were return visits`, cited: cite(flagged, ['job_labor', 'job_materials']), impact: total, formula: 'sum(labor cost + material cost) of jobs marked as callbacks', inputs: { callbacks: flagged.length, jobs: costedJobs.length }, basis: 'CALCULATED', recoverable: true,
+        details: flagged.map((r) => `${str(r.normalizedValues.job_id)} ${str(r.normalizedValues.job_type)}${str(r.normalizedValues.technician) ? ' (' + str(r.normalizedValues.technician) + ')' : ''}: labor ${usd(cents(r.normalizedValues.labor_cost)!)} + materials ${usd(cents(r.normalizedValues.material_cost) ?? 0)} (${where(r)})`),
+        causes: ['Installs not commissioned or tested before leaving', 'Wrong or low-quality parts', 'Rushed schedule'],
+        recovery: ['Find the original job for each callback and recover warranty parts cost from the supplier where the part failed.', 'Review each callback with the technician and record the root cause.'],
+        prevention: ['Use a pre-departure checklist with photos for installs.', 'Track callback rate by technician and job type monthly.'], assumptions: ['Counts the full cost of the return visit; revenue billed on the callback job, if any, is not subtracted.'] });
+      check('callbacks', 'FOUND', `${flagged.length} callback job(s).`); } }
+  { const mk = of('marketing').filter((r) => cents(r.normalizedValues.marketing_spend) !== null && str(r.normalizedValues.marketing_source));
+    const attributed = costedJobs.filter((r) => str(r.normalizedValues.marketing_source));
+    if (!mk.length) check('marketing_return', 'NOT_ENOUGH_DATA', 'Upload marketing spend by lead source (month, source, spend).');
+    else if (!attributed.length) check('marketing_return', 'NOT_ENOUGH_DATA', 'Job costing has no Lead Source column, so revenue cannot be matched to marketing spend.');
+    else { const key = (v: unknown) => str(v).trim().toLowerCase(); const by = new Map<string, { name: string; spend: number; rows: NormalizedBusinessRecord[]; months: Set<string> }>();
+      for (const r of mk) { const k = key(r.normalizedValues.marketing_source); const v = by.get(k) || { name: str(r.normalizedValues.marketing_source), spend: 0, rows: [], months: new Set<string>() }; v.spend += cents(r.normalizedValues.marketing_spend)!; v.rows.push(r); v.months.add(str(r.normalizedValues.date).slice(0, 7)); by.set(k, v); }
+      const res = Array.from(by.values()).map((v) => { const jobs = attributed.filter((j) => key(j.normalizedValues.marketing_source) === key(v.name) && v.months.has(str(j.normalizedValues.date).slice(0, 7))); const c = jobs.reduce((x, j) => x + margin(j), 0); return { ...v, jobs, contrib: c, short: v.spend - Math.max(0, c) }; });
+      const bad = res.filter((x) => x.contrib < x.spend);
+      const table = res.map((x) => `${x.name}: spend ${usd(x.spend)}, ${x.jobs.length} attributed job(s), job contribution ${usd(x.contrib)}`);
+      if (!bad.length) check('marketing_return', 'NONE_FOUND', `Every paid source returned more job contribution than it cost. ${table.join('; ')}.`);
+      else { push('marketing_return', { title: `Marketing return: ${bad.map((b) => b.name).join(', ')} cost more than the jobs they brought in`, cited: cite(bad.flatMap((b) => [...b.rows, ...b.jobs]), ['marketing_cost', 'job_revenue', 'job_labor', 'job_materials']), impact: bad.reduce((x, b) => x + b.short, 0), formula: 'per source: spend - max(0, sum(job revenue - labor - materials) of jobs with that lead source in the same months)', inputs: { sources: res.length }, basis: 'ESTIMATE', recoverable: true,
+          details: [...bad.map((b) => `${b.name}: spent ${usd(b.spend)} in ${Array.from(b.months).sort().join(', ')}; ${b.jobs.length} job(s) contributed ${usd(b.contrib)}; shortfall ${usd(b.short)}.`), ...table],
+          causes: ['Paying for leads that rarely book or book only small jobs', 'Lead source not recorded on every job (attribution gaps)'],
+          recovery: ['Pause or cut the budget on the losing sources for one month and watch booked jobs.', 'Move the budget to the source with the best contribution per dollar.'],
+          prevention: ['Record the lead source on every job and review spend vs contribution by source monthly.'], assumptions: ['Assumes the job costing file lists every job from these sources in those months; repeat business from these customers later is not counted.'] });
+        check('marketing_return', 'FOUND', `${bad.length} source(s) below break-even.`); } } }
+
+  // ---- Labor utilization (timesheets) ----
+  { const ts = of('timesheet').filter((r) => str(r.normalizedValues.employee) && typeof r.normalizedValues.billable_hours === 'number');
+    if (!ts.length) check('labor_utilization', 'NOT_ENOUGH_DATA', pay.length ? 'Payroll shows hours paid but not hours billed; upload timesheets with billable and non-billable hours.' : 'Upload timesheets with billable and non-billable hours per employee.');
+    else { const target = Number(process.env.BIZBETTER_UTILIZATION_TARGET) || 0.7; const rate = new Map<string, number>(); for (const r of pay) { const c = cents(r.normalizedValues.hourly_rate); if (c !== null) rate.set(str(r.normalizedValues.employee), c); }
+      const by = new Map<string, { b: number; t: number; rows: NormalizedBusinessRecord[] }>();
+      for (const r of ts) { const e = str(r.normalizedValues.employee); const v = by.get(e) || { b: 0, t: 0, rows: [] }; const b = Number(r.normalizedValues.billable_hours), nb = Number(r.normalizedValues.nonbillable_hours ?? 0); v.b += b; v.t += b + nb; v.rows.push(r); by.set(e, v); }
+      const low = Array.from(by.entries()).filter(([, v]) => v.t > 0 && v.b / v.t < target).map(([e, v]) => { const gap = Math.round((target * v.t - v.b) * 10000) / 10000; const rc = rate.get(e); return { e, v, gap, cost: rc === undefined ? null : Math.round(gap * rc) }; });
+      const team = Array.from(by.values()).reduce((x, v) => ({ b: x.b + v.b, t: x.t + v.t }), { b: 0, t: 0 });
+      const table = Array.from(by.entries()).map(([e, v]) => `${e}: ${v.b.toFixed(1)} billable of ${v.t.toFixed(1)} hours (${pct(v.b / v.t)})`);
+      if (!low.length) check('labor_utilization', 'NONE_FOUND', `Everyone is at or above the ${pct(target)} billable target; team ${pct(team.b / team.t)}.`);
+      else { const priced = low.filter((l) => l.cost !== null); const total = priced.reduce((x, l) => x + l.cost!, 0);
+        push('labor_utilization', { title: `Labor utilization: ${low.map((l) => l.e).join(', ')} below ${pct(target)} billable hours`, cited: cite(low.flatMap((l) => [...l.v.rows, ...pay.filter((p) => str(p.normalizedValues.employee) === l.e)]), ['hours', 'payroll_cost']), impact: priced.length ? total : null, formula: `per employee below target: (${target} x total hours - billable hours) x hourly rate from payroll`, inputs: { employees: by.size, target_bp: Math.round(target * 10000) }, basis: 'ESTIMATE', recoverable: true,
+          details: [...low.map((l) => `${l.e}: ${pct(l.v.b / l.v.t)} billable; ${l.gap.toFixed(1)} hours short of target${l.cost !== null ? `, about ${usd(l.cost)} of paid time not billed` : ' (no hourly rate in payroll)'}.`), ...table],
+          causes: ['Driving back to the shop between calls (no route planning)', 'Waiting on parts or dispatch', 'Overtime spent on non-billable work'],
+          recovery: ['Plan routes so techs go job to job, and stock vans so they do not return to the shop for parts.', 'Review non-billable hours with each tech weekly.'],
+          prevention: ['Track billable vs paid hours per tech every pay period with a 70% target.'], assumptions: ['Uses straight-time hourly rate; overtime premium is counted separately in the overtime leak.', 'Overlaps with the overtime and fuel leaks.'] });
+        check('labor_utilization', 'FOUND', `${low.length} employee(s) below ${pct(target)} billable.`); } } }
+
+  // Money leaks ranked by dollar impact; the revenue trend is context (not money lost) and goes after them.
+  leaks.sort((a, b) => Number(a.category === 'revenue_trend') - Number(b.category === 'revenue_trend') || (b.finding.impactMinor ?? -1) - (a.finding.impactMinor ?? -1));
   const totalRecoverableMinor = leaks.filter((l) => l.recoverable && l.finding.impactMinor !== null).reduce((s, l) => s + l.finding.impactMinor!, 0);
   const bookedLossMinor = leaks.filter((l) => l.category === 'losing_months').reduce((s, l) => s + (l.finding.impactMinor ?? 0), 0);
   return { leaks, checks, totalRecoverableMinor, bookedLossMinor, currency, asOf, overlapNote: 'Leaks can overlap (for example a rising software subscription is also part of the Software Subscriptions cost line), so the total is an upper estimate of money to recover, not a guaranteed saving. Losing months are reported separately because they are the result of the other leaks.' };

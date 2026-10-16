@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Finding, SourceRecord, Decision, LedgerItem, INSUFFICIENT } from '@/lib/evidence/model';
 
 export type Workspace = {
+  businessName?: string;
   message: string;
   quality: { score: number | null; formula: string; criteria: Record<string, boolean>; limitations: string[] };
   findings: Finding[];
@@ -78,6 +79,9 @@ function likelyCauses(f: Finding): string[] {
   return f.confounders?.length ? f.confounders.slice(0, 3) : ['Review the cited source records for context'];
 }
 
+/** Non-analyst pages follow ?businessId= so every page can show the same workspace; default is the owner's main workspace. */
+const urlBusinessId = () => (typeof window === 'undefined' ? undefined : new URLSearchParams(window.location.search).get('businessId') || undefined);
+
 export function EvidenceWorkspace({
   section,
   initialBusinessId,
@@ -101,8 +105,8 @@ export function EvidenceWorkspace({
       const r =
         section === 'analyst'
           ? await fetch('/api/intake?businessId=' + encodeURIComponent(id), { cache: 'no-store' })
-          : await fetch('/api/evidence', { cache: 'no-store' });
-      if (!r.ok) throw new Error('Evidence workspace could not be read.');
+          : await fetch('/api/evidence' + (urlBusinessId() ? '?businessId=' + encodeURIComponent(urlBusinessId()!) : ''), { cache: 'no-store' });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Evidence workspace could not be read.');
       const result = await r.json();
       if (section === 'analyst') {
         setData({
@@ -189,6 +193,7 @@ export function EvidenceWorkspace({
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{labels[section] || labels.overview}</h1>
+      {section !== 'analyst' && data?.businessName && urlBusinessId() && <p className="text-xs text-slate-400" data-testid="workspace-name">Workspace: <b className="text-slate-200">{data.businessName}</b></p>}
       {section === 'overview' && <Link href="/smart-analysis" className="block rounded-lg border border-emerald-500/60 bg-emerald-500/10 p-3 text-sm text-emerald-200 hover:bg-emerald-500/20">New here? Start the guided smart analysis: we walk you through the financials to provide, then explain findings, fixes and prevention.</Link>}
       <p className="text-slate-400">
         Source-backed observations are separate from hypotheses, savings opportunities and measured outcomes. No
@@ -293,6 +298,7 @@ export function EvidenceWorkspace({
               {analystError && <p role="alert">{analystError}</p>}
               {answer && (
                 <div className="space-y-3 border-t border-slate-700 pt-3">
+                  {Array.isArray(answer.notes) && answer.notes.length > 0 && <p className="text-xs text-amber-300">{answer.notes.join(' ')}</p>}
                   <p role="status">
                     {answer.status === 'AI_ANALYSIS'
                       ? `${answer.provider} ${answer.model} · ${answer.depth}`
@@ -678,7 +684,7 @@ function DecisionActions({ finding, reload }: { finding: Finding; reload: () => 
       const r = await fetch('/api/decisions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ findingId: finding.id, owner, notes, decision }),
+        body: JSON.stringify({ findingId: finding.id, owner, notes, decision, businessId: urlBusinessId() }),
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
@@ -759,6 +765,7 @@ function OpportunityActions({
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          businessId: urlBusinessId(),
           findingId: finding.id,
           state,
           validatedBy: validator,

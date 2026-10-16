@@ -123,3 +123,30 @@ Grok is used only to classify a table the deterministic scorer is unsure about (
 
 - `npx tsx scripts/verify-document-intake.ts` - offline: detection, extraction and exact leak amounts.
 - `npx tsx scripts/e2e-northstar.ts` - live, against the running dev server: creates/reuses the "Northstar Plumbing & Heating (mock)" workspace, uploads, imports, runs Grok and compares planted vs found. Screenshots are in `mock-business/screenshots/`.
+
+### Analysis readiness (Data Intake checklist) and the analyses that run
+
+The Data Intake "Business data request checklist" lists each analysis as **Ready** (with matched records and months) or **Recommended / Optional later** with a specific "Why not yet" (the missing fields, history or sample size). Every analysis is backed by a deterministic engine in `lib/leaks/engine.ts` and runs in Smart Analysis:
+
+| Analysis | Needs | Engine check |
+|---|---|---|
+| Revenue trend | 8+ months of P&L income | first 3 vs last 3 months (context, not added to the recoverable total) |
+| Expense category review | 3+ months of P&L expense lines | cost lines rising faster than revenue |
+| Vendor concentration | bank/card charges from 5+ suppliers | largest supplier share (payroll, tax, transfers excluded; no dollar saving claimed) |
+| Job profitability | job revenue, labor, materials | losing and underpriced jobs |
+| Technician contribution | jobs with a Technician column | technicians 10+ points below the median margin |
+| Labor utilization | timesheets with billable / non-billable hours | hours below `BIZBETTER_UTILIZATION_TARGET` (70%) x payroll hourly rate |
+| Callback economics | jobs with a Callback column | labor + materials of return visits |
+| Marketing return | spend by lead source + Lead Source on jobs | sources whose job contribution is below their spend |
+| Receivables follow-up | invoices with due date and amount paid | overdue balances as of the run date |
+| Overtime decomposition | payroll with employee, overtime hours/pay | overtime premium, per employee |
+
+All pages (Overview, Profit Leaks, Opportunities, Money Found, Recommendations, Decisions, Results, Financials, Settings) follow `?businessId=` and the sidebar keeps it, so any workspace can be reviewed; decisions and Money Found stages are saved to that workspace. The findings on those pages include the money-leak findings (`lib/leaks/merge.ts`).
+
+UI end-to-end test (headless Chromium via Playwright, against the running dev server; creates its own mock workspace through the UI):
+
+```
+PLAYWRIGHT_MODULE=<path>/node_modules/playwright node scripts/e2e-ui-northstar.cjs
+```
+
+It uploads all mock files (plus an unknown binary that is discarded), confirms the vision-read receipt, imports, saves the profile, runs Smart Analysis with live Grok, exports CSV/JSON, loads every page checking console errors / failed requests / 5xx, checks the readiness checklist, records a decision, starts Money Found tracking, asks the AI Analyst, parses a CSV, saves Settings, walks the setup guide and probes every API route. Results go to `mock-business/e2e-ui-results.json`.

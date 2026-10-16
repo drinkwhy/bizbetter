@@ -35,6 +35,9 @@ const NAV_ITEMS = [
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
+  // Keep the selected workspace (?businessId=) when moving between pages.
+  const [businessId, setBusinessId] = React.useState<string | null>(null);
+  React.useEffect(() => { setBusinessId(new URLSearchParams(window.location.search).get('businessId')); }, [pathname]);
 
   return (
     <aside className="w-16 md:w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 min-h-[calc(100vh-4rem)]">
@@ -50,7 +53,7 @@ export const Sidebar: React.FC = () => {
             return (
               <Link
                 key={item.name}
-                href={item.href}
+                href={businessId ? `${item.href}?businessId=${encodeURIComponent(businessId)}` : item.href}
                 data-walkthrough-page={item.href}
                 aria-label={item.name}
                 aria-current={isActive ? 'page' : undefined}

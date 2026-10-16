@@ -10,6 +10,7 @@ import { documentToEvidence } from '@/lib/documents/records';
 import { parseAnyDate, parseMoneyMinor, appearsInText } from '@/lib/documents/parse';
 import { sniffFormat } from '@/lib/documents/read';
 import { runLeakEngines } from '@/lib/leaks/engine';
+import { capabilityReport } from '@/lib/intake/capabilities';
 import { runSmartAnalysis } from '@/lib/smart-analysis/run';
 import type { ExtractedDocument } from '@/lib/documents/types';
 
@@ -31,12 +32,12 @@ async function main() {
   const expect: Record<string, [string, string, number]> = {
     'northstar_profit_and_loss_oct2025-sep2026.xlsx': ['xlsx', 'pnl', 0], 'northstar_bank_statement_sep2026.pdf': ['pdf', 'bank_statement', 20], 'northstar_credit_card_apr-sep2026.csv': ['csv', 'card_statement', 51],
     'northstar_invoices_ar_jul-sep2026.csv': ['csv', 'invoices', 24], 'northstar_job_costing_jul-sep2026.csv': ['csv', 'job_costing', 30], 'northstar_payroll_register_jul-sep2026.xlsx': ['xlsx', 'payroll', 42],
-    'stripe_payouts_export_2026.csv': ['csv', 'processor_fees', 12], 'northstar_business_notes.docx': ['docx', 'business_notes', 0], 'receipt_menards_2026-09-15.png': ['image', 'receipt', 0] };
+    'stripe_payouts_export_2026.csv': ['csv', 'processor_fees', 12], 'northstar_timesheets_jul-sep2026.csv': ['csv', 'timesheet', 35], 'northstar_marketing_spend_jul-sep2026.csv': ['csv', 'marketing', 9], 'northstar_business_notes.docx': ['docx', 'business_notes', 0], 'receipt_menards_2026-09-15.png': ['image', 'receipt', 0] };
   for (const [f, [format, kind, rows]] of Object.entries(expect)) { const d = docs[f]; assert.ok(d, 'missing mock file ' + f); assert.equal(d.format, format, f); assert.equal(d.kind, kind, f); if (rows) assert.equal(d.rows.length, rows, f + ' rows'); }
   assert.equal(docs['northstar_profit_and_loss_oct2025-sep2026.xlsx'].rows.filter((r) => r.values.section === 'net_income').length, 12);
   assert.equal(docs['northstar_business_notes.docx'].status, 'CONTEXT_ONLY'); assert.equal(docs['receipt_menards_2026-09-15.png'].status, 'UNSUPPORTED');
-  for (const f of Object.keys(expect).slice(0, 7)) assert.equal(docs[f].status, 'READY', f);
-  ok('all 9 Northstar files classified correctly with expected row counts (PDF, XLSX, CSV, DOCX, PNG)');
+  for (const f of Object.keys(expect).slice(0, 9)) assert.equal(docs[f].status, 'READY', f + ' ' + docs[f].kindReason + ' ' + docs[f].warnings.join(' '));
+  ok('all 11 Northstar files classified correctly with expected row counts (PDF, XLSX, CSV, DOCX, PNG)');
   const bank = docs['northstar_bank_statement_sep2026.pdf'];
   assert.equal(bank.rows[5].loc.startsWith('page 1, line'), true); assert.equal(parseMoneyMinor(bank.rows.find((r) => String(r.values.description).startsWith('FERGUSON'))!.values.amount as string), -241837);
   ok('PDF statement lines keep page/line provenance and signed amounts');
@@ -61,7 +62,25 @@ async function main() {
   assert.deepEqual(Object.fromEntries(trends), { Fuel: 311000, 'Software Subscriptions': 105000 });
   const under = rep.leaks.find((l) => l.category === 'underpriced_jobs')!; for (const j of exp.underpriced_jobs.jobs) assert.ok(under.details.some((d) => d.startsWith(j)), j);
   assert.ok(rep.leaks.every((l) => l.finding.sourceRecordIds.length > 0 && l.finding.recovery.length && l.finding.prevention.length));
-  for (let i = 1; i < rep.leaks.length; i++) assert.ok((rep.leaks[i - 1].finding.impactMinor ?? -1) >= (rep.leaks[i].finding.impactMinor ?? -1));
+  const ranked = rep.leaks.filter((l) => l.category !== 'revenue_trend'); for (let i = 1; i < ranked.length; i++) assert.ok((ranked[i - 1].finding.impactMinor ?? -1) >= (ranked[i].finding.impactMinor ?? -1));
+  assert.equal(rep.leaks[rep.leaks.length - 1].category, 'revenue_trend');
+  assert.ok(!/gusto|payroll/i.test(rep.checks.find((c) => c.category === 'vendor_concentration')!.note));
+  assert.equal(amt('revenue_trend'), Math.round(exp.revenue_trend.decline * 100));
+  assert.equal(amt('technician_contribution'), Math.round(exp.technician_contribution.total * 100));
+  assert.equal(amt('callbacks'), Math.round(exp.callbacks.total * 100));
+  assert.equal(amt('marketing_return'), Math.round(exp.marketing_return.total * 100));
+  assert.equal(amt('labor_utilization'), Math.round(exp.labor_utilization.total * 100));
+  for (const e of exp.labor_utilization.below_target) assert.ok(rep.leaks.find((l) => l.category === 'labor_utilization')!.finding.title.includes(e), e);
+  assert.ok(rep.checks.find((c) => c.category === 'vendor_concentration')!.status !== 'NOT_ENOUGH_DATA');
+  const caps = capabilityReport(normalized, records);
+  for (const a of caps.analyses) assert.equal(a.status, 'AVAILABLE', `${a.name}: ${a.missing.join(' ')}`);
+  assert.equal(caps.checklist.recommended.length + caps.checklist.optional.length, 0); assert.equal(caps.checklist.ready.length, 10);
+  // Without timesheets / marketing / technician columns the readiness reasons are specific
+  const lean = capabilityReport(normalized.filter((r) => !['timesheet', 'marketing'].includes(String(r.normalizedValues.doc_kind))), records);
+  const reason = (id: string) => lean.analyses.find((a) => a.id === id)!.missing.join(' ');
+  assert.match(reason('labor-utilization'), /billable_hours/); assert.match(reason('marketing-roi'), /marketing_spend/);
+  const leanRep = runLeakEngines({ normalized: normalized.filter((r) => !['timesheet', 'marketing'].includes(String(r.normalizedValues.doc_kind))), records, asOf: '2026-10-16' });
+  assert.match(leanRep.checks.find((c) => c.category === 'labor_utilization')!.note, /timesheets/); assert.match(leanRep.checks.find((c) => c.category === 'marketing_return')!.note, /marketing spend/);
   ok(`leak engines find every planted leak with exact amounts; ${rep.leaks.length} leaks ranked, recoverable ${rep.totalRecoverableMinor / 100}`);
 
   // Insufficient data stays explicit
@@ -93,7 +112,11 @@ async function main() {
   // Vision stub -> NEEDS_REVIEW, never auto-imported as verified
   const vis = await extract('receipt.png', await read('receipt_menards_2026-09-15.png'), (async () => ({ model: 'stub', value: { kind: 'receipt', reason: 'stub', rows: [{ ...nulls(), date: '09/15/2026', vendor: 'MENARDS', description: 'Plumbing parts', amount: '362.30' }] } })) as never);
   assert.equal(vis.method, 'GROK_VISION'); assert.equal(vis.status, 'NEEDS_REVIEW'); assert.equal(vis.rows.length, 1);
-  ok('image receipts read by vision are marked for owner confirmation');
+  let calls = 0; const flaky = (async () => ({ model: 'stub', value: { kind: 'receipt', reason: 'stub', rows: [{ ...nulls(), date: '09/15/2026', vendor: 'MENARDS', amount: ++calls === 1 ? null : '362.30' }] } })) as never;
+  const vis2 = await extract('receipt.png', await read('receipt_menards_2026-09-15.png'), flaky); assert.equal(calls, 2); assert.equal(vis2.rows[0].values.amount, '362.30');
+  let calls2 = 0; const blank = (async () => { calls2++; return { model: 'stub', value: { kind: 'receipt', reason: 'stub', rows: [{ ...nulls(), vendor: 'MENARDS' }] } }; }) as never;
+  const vis3 = await extract('receipt.png', await read('receipt_menards_2026-09-15.png'), blank); assert.equal(calls2, 2); assert.equal(vis3.rows.length, 0); assert.match(vis3.warnings.join(' '), /could not read an amount/);
+  ok('image receipts read by vision are marked for owner confirmation; a missing total is retried once, then reported');
   console.log(`ALL ${n} DOCUMENT INTAKE CHECKS PASSED.`);
 }
 function nulls() { return Object.fromEntries(['due_date', 'vendor', 'category', 'balance', 'invoice_id', 'customer', 'amount_paid', 'open_balance', 'job_id', 'job_type', 'revenue', 'labor_cost', 'material_cost', 'employee', 'regular_hours', 'overtime_hours', 'gross_wages', 'overtime_pay', 'gross', 'fee', 'net', 'net_profit', 'expenses', 'line', 'section', 'description', 'date', 'amount'].map((k) => [k, null])); }

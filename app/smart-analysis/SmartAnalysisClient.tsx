@@ -130,7 +130,7 @@ export function SmartAnalysisClient({ initialBusinessId, initialStep }: { initia
           {result.notes?.map((n) => <p key={n} className="text-xs text-slate-500">{n}</p>)}
         </div>
 
-        {rep.leaks.length > 0 && <div className="space-y-3"><h3 className="text-lg font-semibold">{result.status === 'NEED_MORE_DATA' ? 'Early findings (incomplete data)' : 'Leaks ranked by dollar impact'}</h3>
+        {rep.leaks.length > 0 && <div className="space-y-3"><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-lg font-semibold">{result.status === 'NEED_MORE_DATA' ? 'Early findings (incomplete data)' : 'Leaks ranked by dollar impact'}</h3><span className="flex gap-2"><button type="button" data-testid="export-csv" onClick={() => exportReport(result, 'csv')} className="rounded border border-slate-600 px-3 py-1 text-xs hover:bg-slate-800">Download CSV</button><button type="button" data-testid="export-json" onClick={() => exportReport(result, 'json')} className="rounded border border-slate-600 px-3 py-1 text-xs hover:bg-slate-800">Download JSON</button></span></div>
           {rep.leaks.map((l, i) => <LeakCard key={l.finding.id} leak={l} rank={i + 1} />)}</div>}
         {rep.leaks.length === 0 && result.status !== 'NEED_MORE_DATA' && <p className="text-slate-400">{INSUFFICIENT}</p>}
 
@@ -156,13 +156,26 @@ export function SmartAnalysisClient({ initialBusinessId, initialStep }: { initia
     </main>);
 }
 
+/** Client-side export of the saved report: every amount comes from the deterministic report, with its cited evidence locations. */
+function exportReport(result: Result, kind: 'csv' | 'json') {
+  const name = (result.businessName || 'business').replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '-money-leaks-' + (result.report?.asOf || 'report');
+  let body: string, type: string;
+  if (kind === 'json') { body = JSON.stringify({ business: result.businessName, industry: result.industry, generatedAt: result.generatedAt, report: result.report, commentary: result.answer }, null, 2); type = 'application/json'; }
+  else { const q = (v: unknown) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+    const rows = [['rank', 'category', 'title', 'basis', 'amount_usd', 'recoverable', 'formula', 'details', 'fix', 'prevention', 'evidence_ids'].map(q).join(',')];
+    result.report.leaks.forEach((l, i) => rows.push([i + 1, l.category, l.finding.title, l.basis, l.finding.impactMinor === null ? '' : (l.finding.impactMinor / 100).toFixed(2), l.recoverable ? 'yes' : 'no', l.finding.formula, l.details.join(' | '), l.finding.recovery.join(' | '), l.finding.prevention.join(' | '), l.finding.sourceRecordIds.join(' ')].map(q).join(',')));
+    for (const c of result.report.checks) rows.push(['', c.category, 'CHECK: ' + c.label, c.status, '', '', '', c.note, '', '', ''].map(q).join(','));
+    body = rows.join('\r\n'); type = 'text/csv'; }
+  const url = URL.createObjectURL(new Blob([body], { type })); const a = document.createElement('a'); a.href = url; a.download = `${name}.${kind}`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 function LeakCard({ leak: l, rank }: { leak: Leak; rank: number }) {
   const f = l.finding;
   return (
     <article className="rounded-lg border border-slate-700 bg-slate-900/40 p-5 space-y-3" data-testid="leak-card">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div><p className="text-xs text-slate-500">#{rank} · {l.label}</p><h4 className="text-lg font-bold">{f.title}</h4><p className="text-xs text-slate-500">{f.periodStart} to {f.periodEnd} · {basisLabel[l.basis]}</p></div>
-        <div className="text-right"><p className={'text-2xl font-semibold ' + (l.recoverable ? 'text-emerald-400' : 'text-red-300')}>{usd(f.impactMinor)}</p><p className="text-xs text-slate-500">{l.recoverable ? 'Recoverable / avoidable' : 'Loss already booked'}</p></div>
+        <div className="text-right"><p className={'text-2xl font-semibold ' + (f.impactMinor === null ? 'text-slate-300' : l.recoverable ? 'text-emerald-400' : 'text-red-300')}>{f.impactMinor === null ? 'Not priced' : usd(f.impactMinor)}</p><p className="text-xs text-slate-500">{f.impactMinor === null ? 'Review: no dollar figure is claimed' : l.recoverable ? 'Recoverable / avoidable' : l.category === 'revenue_trend' ? 'Revenue decline (not added to the total)' : 'Loss already booked'}</p></div>
       </div>
       <div><h5 className="text-xs font-semibold uppercase tracking-wide text-slate-400">What we found</h5><ul className="mt-1 list-disc pl-5 text-sm space-y-0.5">{l.details.slice(0, 8).map((d) => <li key={d}>{d}</li>)}{l.details.length > 8 && <li className="text-slate-500">and {l.details.length - 8} more</li>}</ul></div>
       <div><h5 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Likely causes</h5><ul className="mt-1 list-disc pl-5 text-sm">{l.causes.map((c) => <li key={c}>{c}</li>)}</ul></div>

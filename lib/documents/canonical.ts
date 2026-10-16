@@ -5,7 +5,7 @@ export const normHeader = (h: CellValue) => String(h ?? '').toLowerCase().replac
 
 /** Header aliases per canonical field (normalized). Kind-specific meaning is resolved later. */
 const ALIASES: Partial<Record<CanonicalField, string[]>> = {
-  date: ['date', 'transaction date', 'trans date', 'posted date', 'posting date', 'post date', 'invoice date', 'pay date', 'check date', 'pay period end', 'period end', 'job date', 'completed date', 'completion date', 'date completed', 'created', 'created utc', 'created date', 'payout date', 'arrival date', 'month', 'period', 'txn date'],
+  date: ['date', 'transaction date', 'trans date', 'posted date', 'posting date', 'post date', 'invoice date', 'pay date', 'check date', 'pay period end', 'period end', 'month end', 'job date', 'completed date', 'completion date', 'date completed', 'created', 'created utc', 'created date', 'payout date', 'arrival date', 'month', 'period', 'txn date'],
   due_date: ['due date', 'due', 'payment due', 'date due'],
   description: ['description', 'memo', 'details', 'transaction description', 'narrative', 'name', 'payee', 'merchant', 'merchant name'],
   vendor: ['vendor', 'supplier', 'vendor name'],
@@ -24,7 +24,15 @@ const ALIASES: Partial<Record<CanonicalField, string[]>> = {
   revenue: ['revenue', 'job revenue', 'sales', 'price', 'total price', 'billed', 'billed amount', 'income', 'total revenue'],
   labor_cost: ['labor cost', 'labor', 'labor $', 'labour cost', 'labor costs'],
   material_cost: ['material cost', 'materials', 'material costs', 'parts cost', 'materials cost', 'parts'],
-  employee: ['employee', 'employee name', 'worker', 'staff', 'technician'],
+  employee: ['employee', 'employee name', 'worker', 'staff'],
+  technician: ['technician', 'tech', 'assigned tech', 'lead tech', 'technician name'],
+  labor_hours: ['labor hours', 'job hours', 'hours on job', 'labour hours'],
+  billable_hours: ['billable hours', 'billed hours', 'on job hours'],
+  nonbillable_hours: ['non billable hours', 'nonbillable hours', 'unbilled hours', 'non billable', 'drive shop hours'],
+  lead_source: ['lead source', 'marketing source', 'campaign', 'channel', 'referral source', 'source'],
+  callback: ['callback', 'is callback', 'rework', 'callback of', 'warranty callback'],
+  spend: ['ad spend', 'spend', 'marketing spend', 'amount spent', 'cost'],
+  leads: ['leads', 'lead count'],
   regular_hours: ['regular hours', 'reg hours', 'reg hrs', 'regular hrs', 'hours'],
   overtime_hours: ['overtime hours', 'ot hours', 'ot hrs', 'overtime hrs', 'overtime'],
   hourly_rate: ['hourly rate', 'rate', 'pay rate'],
@@ -65,7 +73,9 @@ export const isWidePnl = (t: Table) => monthColumns(t).length >= 3;
 /** Resolves header -> field for a given document kind; prefers kind-specific meanings. */
 export function mapColumns(headers: string[], kind: DocKind): Array<CanonicalField | null> {
   const prefer: Partial<Record<DocKind, CanonicalField[]>> = {
-    job_costing: ['job_id', 'revenue', 'labor_cost', 'material_cost', 'job_type', 'customer', 'date'],
+    job_costing: ['job_id', 'revenue', 'labor_cost', 'material_cost', 'job_type', 'customer', 'date', 'technician', 'labor_hours', 'lead_source', 'callback'],
+    timesheet: ['employee', 'date', 'billable_hours', 'nonbillable_hours', 'job_id'],
+    marketing: ['date', 'lead_source', 'spend', 'leads'],
     invoices: ['invoice_id', 'customer', 'amount', 'amount_paid', 'open_balance', 'due_date', 'status', 'date'],
     payroll: ['employee', 'regular_hours', 'overtime_hours', 'hourly_rate', 'gross_wages', 'overtime_pay', 'date'],
     processor_fees: ['gross', 'fee', 'net', 'date', 'currency'],
@@ -88,17 +98,19 @@ const has = (f: Array<CanonicalField | null>, ...x: CanonicalField[]) => x.some(
 export function scoreKind(fileName: string, headers: string[], text = ''): { kind: DocKind; confidence: number; reason: string } {
   const name = fileName.toLowerCase(), t = text.toLowerCase().slice(0, 4000);
   const f = headers.map((h) => candidatesFor(h)).flat();
-  const s: Record<DocKind, number> = { pnl: 0, bank_statement: 0, card_statement: 0, invoices: 0, job_costing: 0, payroll: 0, processor_fees: 0, receipt: 0, business_notes: 0, unknown: 0 };
+  const s: Record<DocKind, number> = { pnl: 0, bank_statement: 0, card_statement: 0, invoices: 0, job_costing: 0, payroll: 0, processor_fees: 0, timesheet: 0, marketing: 0, receipt: 0, business_notes: 0, unknown: 0 };
   const why: string[] = [];
   if (f.includes('job_id')) s.job_costing += 3; if (has(f as CanonicalField[], 'labor_cost')) s.job_costing += 2; if (has(f as CanonicalField[], 'material_cost')) s.job_costing += 2;
   if (f.includes('invoice_id')) s.invoices += 3; if (f.includes('due_date')) s.invoices += 2; if (has(f as CanonicalField[], 'amount_paid', 'open_balance')) s.invoices += 2;
   if (f.includes('employee')) s.payroll += 2; if (has(f as CanonicalField[], 'overtime_hours', 'regular_hours')) s.payroll += 2; if (has(f as CanonicalField[], 'gross_wages', 'overtime_pay')) s.payroll += 3;
+  if (has(f as CanonicalField[], 'billable_hours', 'nonbillable_hours')) s.timesheet += 6;
+  if (f.includes('spend') && f.includes('lead_source') && !f.includes('job_id')) s.marketing += 6;
   if (f.includes('fee')) s.processor_fees += 3; if (f.includes('net')) s.processor_fees += 1; if (f.includes('gross')) s.processor_fees += 2;
   const txn = (f.includes('date') ? 1 : 0) + (f.includes('description') ? 2 : 0) + (has(f as CanonicalField[], 'amount', 'debit', 'credit') ? 2 : 0);
   s.bank_statement += txn + (f.includes('balance') ? 2 : 0); s.card_statement += txn;
   if (headers.filter((h) => parseMonth(h)).length >= 3) { s.pnl += 6; why.push('month columns'); }
   if (/net income|total income|gross profit|profit and loss|income statement/.test(t)) s.pnl += 3;
-  const hint: Array<[RegExp, DocKind]> = [[/p ?& ?l|profit|income.?statement/, 'pnl'], [/bank|checking|savings/, 'bank_statement'], [/card|visa|amex|mastercard|discover/, 'card_statement'], [/invoice|\bar\b|a.r|aging|receivable/, 'invoices'], [/job/, 'job_costing'], [/payroll|timesheet|wage/, 'payroll'], [/stripe|square|payout|processor|merchant|fees/, 'processor_fees'], [/receipt/, 'receipt'], [/notes?|memo|about/, 'business_notes']];
+  const hint: Array<[RegExp, DocKind]> = [[/p ?& ?l|profit|income.?statement/, 'pnl'], [/bank|checking|savings/, 'bank_statement'], [/card|visa|amex|mastercard|discover/, 'card_statement'], [/invoice|\bar\b|a.r|aging|receivable/, 'invoices'], [/job/, 'job_costing'], [/payroll|wage/, 'payroll'], [/timesheet|time.?entr|time.?card/, 'timesheet'], [/marketing|advertis|ad.?spend|lead.?source/, 'marketing'], [/stripe|square|payout|processor|merchant|fees/, 'processor_fees'], [/receipt/, 'receipt'], [/notes?|memo|about/, 'business_notes']];
   for (const [re, k] of hint) if (re.test(name)) { s[k] += 2; why.push(`file name suggests ${k.replace('_', ' ')}`); }
   if (/credit card|card ending|visa|mastercard|american express/.test(t)) s.card_statement += 2;
   if (/checking|savings account|bank statement|statement period/.test(t)) s.bank_statement += 2;

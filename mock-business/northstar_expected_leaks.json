@@ -120,6 +120,41 @@
       ],
       "note": "Water heater installs with positive but thin margins"
     },
+    "technician_contribution": {
+      "median_margin": 0.1008,
+      "below": {
+        "Sam Voigt": 712.49
+      },
+      "total": 712.49
+    },
+    "callbacks": {
+      "jobs": [
+        {
+          "job": "J-3121",
+          "cost": 2120
+        },
+        {
+          "job": "J-3126",
+          "cost": 705
+        }
+      ],
+      "total": 2825
+    },
+    "marketing_return": {
+      "sources": {
+        "Facebook Ads": {
+          "spend": 1260,
+          "job_contribution": 662,
+          "shortfall": 598
+        },
+        "Angi Leads": {
+          "spend": 2340,
+          "job_contribution": 749,
+          "shortfall": 1591
+        }
+      },
+      "total": 2189
+    },
     "overtime": {
       "total_overtime_pay": 16842.75,
       "total_gross": 119322.75,
@@ -129,11 +164,31 @@
         "Marcus Olson"
       ]
     },
+    "labor_utilization": {
+      "target": 0.7,
+      "by_employee": {
+        "Jake Lindgren": 0.5799,
+        "Marcus Olson": 0.61,
+        "Ana Reyes": 0.74,
+        "Tom Brekke": 0.76,
+        "Sam Voigt": 0.7199
+      },
+      "below_target": [
+        "Jake Lindgren",
+        "Marcus Olson"
+      ],
+      "total": 5529.35
+    },
     "processor_fees": {
       "total_fees": 20451.32,
       "total_gross": 576096.0,
       "effective_rate": 3.55,
       "excess_over_2_9pct": 3744.54
+    },
+    "revenue_trend": {
+      "first3": 338500.0,
+      "last3": 272100.0,
+      "decline": 66400.0
     },
     "receipt_image": {
       "total": 362.3,

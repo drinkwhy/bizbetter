@@ -106,6 +106,18 @@ asof='2026-10-16'; od=[{'invoice':r[0],'outstanding':r[4]-r[5]} for r in inv if 
 manifest['planted']['overdue_invoices']={'as_of':asof,'invoices':od,'total':sum(x['outstanding'] for x in od)}
 
 # ---------- 5. Job costing (CSV) ----------
+# Field techs (Lisa Hagen is the office manager). Sam Voigt is assigned the thin-margin water heater installs.
+FIELD=['Jake Lindgren','Marcus Olson','Ana Reyes','Tom Brekke','Sam Voigt']
+SAM_JOBS={'J-3110','J-3115','J-3121','J-3124'}
+def tech_of(jid):
+    if jid in SAM_JOBS: return 'Sam Voigt'
+    return FIELD[int(jid[2:])%4]
+SOURCES=['Repeat customer','Google Ads','Referral','Google Ads','Repeat customer','Facebook Ads']
+ANGI={'J-3103','J-3117'}
+def src_of(jid):
+    return 'Angi Leads' if jid in ANGI else SOURCES[int(jid[2:])%6]
+CALLBACKS={'J-3121','J-3126'}
+
 jobs=[]; n=3101
 base=[('Drain cleaning',480,150,40),('Furnace repair',920,310,220),('AC tune-up',260,90,25),('Boiler service',740,260,120),('Water heater install',1850,610,780),('Leak repair',540,180,70)]
 plan={3107:('Boiler replacement',6200,3950,3180),3110:('Water heater install',1720,690,890),3115:('Water heater install',1790,720,910),3121:('Water heater install',1650,980,1140),3124:('Water heater install',1760,700,905),3128:('Repipe',9800,6450,4120)}
@@ -117,11 +129,36 @@ for i in range(30):
     else: t,r,l,m=base[i%6]; r=r+(i*15); l=l+(i*4); m=m+(i*3)
     jobs.append((f'J-{jid}',f'2026-{days[i]}',cust[i],t,r,l,m))
 with open(f'{out}/northstar_job_costing_jul-sep2026.csv','w',newline='') as f:
-    w=csv.writer(f); w.writerow(['Job #','Completed Date','Customer','Job Type','Revenue','Labor Cost','Material Cost'])
-    for j in jobs: w.writerow([j[0],j[1],j[2],j[3],f'{j[4]:.2f}',f'{j[5]:.2f}',f'{j[6]:.2f}'])
+    w=csv.writer(f); w.writerow(['Job #','Completed Date','Customer','Job Type','Technician','Lead Source','Callback','Labor Hours','Revenue','Labor Cost','Material Cost'])
+    for j in jobs: w.writerow([j[0],j[1],j[2],j[3],tech_of(j[0]),src_of(j[0]),'Yes' if j[0] in CALLBACKS else 'No',f'{j[5]/45:.1f}',f'{j[4]:.2f}',f'{j[5]:.2f}',f'{j[6]:.2f}'])
 lj=[{'job':j[0],'loss':j[5]+j[6]-j[4]} for j in jobs if j[4]-j[5]-j[6]<0]
 manifest['planted']['losing_jobs']={'jobs':lj,'total':sum(x['loss'] for x in lj)}
 manifest['planted']['underpriced_jobs']={'jobs':['J-3110','J-3115','J-3124'],'note':'Water heater installs with positive but thin margins'}
+
+
+# ---------- 5b. Planted labor/marketing/callback expectations (same formulas as lib/leaks/engine.ts) ----------
+def margin(j): return j[4]-j[5]-j[6]
+techs={}
+for j in jobs:
+    t=techs.setdefault(tech_of(j[0]),{'rev':0,'m':0}); t['rev']+=j[4]; t['m']+=margin(j)
+rates={k:v['m']/v['rev'] for k,v in techs.items()}
+srt=sorted(rates.values()); med=(srt[len(srt)//2] if len(srt)%2 else (srt[len(srt)//2-1]+srt[len(srt)//2])/2)
+low={k:round(techs[k]['rev']*(med-r)*100) for k,r in rates.items() if r < med-0.10}
+manifest['planted']['technician_contribution']={'median_margin':round(med,4),'below':{k:v/100 for k,v in low.items()},'total':sum(low.values())/100}
+cb=[{'job':j[0],'cost':j[5]+j[6]} for j in jobs if j[0] in CALLBACKS]
+manifest['planted']['callbacks']={'jobs':cb,'total':sum(x['cost'] for x in cb)}
+MKT={'Google Ads':(650,14),'Facebook Ads':(420,6),'Angi Leads':(780,9)}
+mrows=[]
+for mo,end in [('07','31'),('08','31'),('09','30')]:
+    for src,(sp,ld) in MKT.items(): mrows.append((f'2026-{mo}-{end}',src,sp,ld))
+with open(f'{out}/northstar_marketing_spend_jul-sep2026.csv','w',newline='') as f:
+    w=csv.writer(f); w.writerow(['Month End','Lead Source','Ad Spend','Leads'])
+    for r in mrows: w.writerow([r[0],r[1],f'{r[2]:.2f}',r[3]])
+mk={}
+for src,(sp,_) in MKT.items():
+    contrib=sum(margin(j) for j in jobs if src_of(j[0])==src); spend=sp*3
+    if contrib<spend: mk[src]={'spend':spend,'job_contribution':contrib,'shortfall':spend-max(0,contrib)}
+manifest['planted']['marketing_return']={'sources':mk,'total':sum(v['shortfall'] for v in mk.values())}
 
 # ---------- 6. Payroll (XLSX) ----------
 emps=[('Jake Lindgren',38.0),('Marcus Olson',36.5),('Ana Reyes',32.0),('Tom Brekke',30.0),('Lisa Hagen',24.0),('Sam Voigt',22.5)]
@@ -138,6 +175,21 @@ for k,pd in enumerate(paydates):
 wb.save(f'{out}/northstar_payroll_register_jul-sep2026.xlsx')
 manifest['planted']['overtime']={'total_overtime_pay':float(tot_ot),'total_gross':float(tot_g),'overtime_premium_estimate':float(q(tot_ot/3)),'heavy_ot':['Jake Lindgren','Marcus Olson']}
 
+
+# ---------- 6b. Timesheets (CSV): billable vs non-billable (drive/shop) hours ----------
+BILL={'Jake Lindgren':0.58,'Marcus Olson':0.61,'Ana Reyes':0.74,'Tom Brekke':0.76,'Sam Voigt':0.72}
+rate_of=dict(emps); util_loss=D(0); ut={}
+with open(f'{out}/northstar_timesheets_jul-sep2026.csv','w',newline='') as f:
+    w=csv.writer(f); w.writerow(['Period End','Employee','Billable Hours','Non-Billable Hours'])
+    for k,pd in enumerate(paydates):
+        for e in FIELD:
+            tot=80+otplan[e][k]; b=round(tot*BILL[e],1); nb=round(tot-b,1); w.writerow([pd,e,f'{b:.1f}',f'{nb:.1f}'])
+            u=ut.setdefault(e,[0.0,0.0]); u[0]+=b; u[1]+=b+nb
+for e,(b,t) in ut.items():
+    gap=0.70*t-b
+    if gap>0: util_loss+=q(D(str(round(gap,4)))*D(str(rate_of[e])))
+manifest['planted']['labor_utilization']={'target':0.70,'by_employee':{e:round(b/t,4) for e,(b,t) in ut.items()},'below_target':[e for e,(b,t) in ut.items() if b/t<0.70],'total':float(util_loss)}
+
 # ---------- 7. Processor fees (CSV, odd export name) ----------
 gross=[q(x*0.48) for x in ti]
 with open(f'{out}/stripe_payouts_export_2026.csv','w',newline='') as f:
@@ -148,13 +200,17 @@ with open(f'{out}/stripe_payouts_export_2026.csv','w',newline='') as f:
         w.writerow([f'{iso}-28',f'{gross[i]}',f'{fee}',f'{gross[i]-fee}','usd'])
 manifest['planted']['processor_fees']={'total_fees':float(tf),'total_gross':float(tg),'effective_rate':float(q(tf/tg*100)),'excess_over_2_9pct':float(q(tf-tg*D('0.029')))}
 
+manifest['planted']['revenue_trend']={'first3':float(sum(ti[:3])),'last3':float(sum(ti[-3:])),'decline':float(sum(ti[:3])-sum(ti[-3:]))}
+
 # ---------- 8. Business notes (DOCX) ----------
 doc=Document(); doc.add_heading('Northstar Plumbing & Heating - Owner Notes',1)
 for p in ['Owner: Erik Halvorsen (fictional). Based in St. Cloud, MN. Residential and light commercial plumbing, heating and cooling.',
- 'Team: 6 field techs and 1 office manager. 3 service vans. Busy season is heating (Oct-Feb).',
+ 'Team: 5 field techs and 1 office manager (Lisa). 3 service vans. Busy season is heating (Oct-Feb).',
  'Pricing for water heater installs has not changed since 2023 even though tank prices went up.',
  'We switched GPS providers to FleetTrack Pro in the spring but I am not sure QuickFleet was ever cancelled.',
  'Jake and Marcus are working a lot of overtime because we have not hired a third senior tech yet.',
+ 'We pay for Google Ads, Facebook Ads and Angi leads; I have never checked which ones actually bring in profitable jobs.',
+ 'We had a couple of callbacks this summer (J-3121, J-3126) that we went back to for free.',
  'Some commercial customers (Lakeside Dental, Granite City Apartments) are slow to pay; nobody is assigned to follow up.',
  'Fuel costs feel higher every month; routes are not planned, techs drive back to the shop between calls.']: doc.add_paragraph(p)
 doc.save(f'{out}/northstar_business_notes.docx')

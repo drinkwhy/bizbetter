@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { SetupGuideModal } from './SetupGuideModal';
 import { readWalkthroughProgress } from '@/lib/walkthrough';
+import { usePathname } from 'next/navigation';
 
 interface NavbarProps {
   businessName?: string;
@@ -21,11 +22,15 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  businessName = 'My Service Business',
-  industry = 'HVAC Contractor',
+  businessName: fallbackName = 'My Business',
+  industry: fallbackIndustry = '',
   moneyFoundTotal
 }) => {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  // Show the real selected workspace (?businessId= or the main one), not a placeholder.
+  const pathname = usePathname(); const [ws, setWs] = useState<{ name: string; industry?: string } | null>(null);
+  useEffect(() => { const want = new URLSearchParams(window.location.search).get('businessId'); fetch('/api/intake/businesses', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((d) => { const list = (d?.businesses || []) as Array<{ id: string; name: string; industry?: string }>; const b = list.find((x) => x.id === want) || list[0]; if (b) setWs({ name: b.name, industry: b.industry }); }).catch(() => undefined); }, [pathname]);
+  const businessName = ws?.name || fallbackName; const industry = ws ? ws.industry || 'Industry not set' : fallbackIndustry;
   const closeGuide = useCallback(() => setIsGuideOpen(false), []);
 
   useEffect(() => {

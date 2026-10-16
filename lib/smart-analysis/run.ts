@@ -2,6 +2,7 @@ import { analyze } from '@/lib/evidence/engine';
 import { INSUFFICIENT, type BusinessWorkspace, type Finding, type NormalizedBusinessRecord, type SourceRecord } from '@/lib/evidence/model';
 import { buildEvidence, callAIProvider, fallback, validateAnswer, type Answer, type Item } from '@/lib/ai/gateway';
 import { runLeakEngines, type LeakReport } from '@/lib/leaks/engine';
+import { mergeFindings } from '@/lib/leaks/merge';
 import { assessSufficiency, type Sufficiency } from './sufficiency';
 
 export const SMART_ANALYSIS_QUERY =
@@ -17,7 +18,6 @@ export interface SmartResult {
   sufficiency: Sufficiency; findings: Finding[]; report: LeakReport; answer: Answer | null; evidenceCount: number; fingerprint: string | null;
 }
 type Provider = typeof callAIProvider;
-const COVERED: Record<string, string> = { losing_months: 'Reported accounting loss', processor_fees: 'Processing fees', losing_jobs: 'Negative direct job contribution' };
 
 /** Removes model claims containing numbers the evidence does not support, instead of discarding the whole answer. */
 export function salvageAnswer(raw: unknown, items: Item[]): { answer: Answer; removed: number } {
@@ -40,8 +40,7 @@ export async function runSmartAnalysis(input: {
 }): Promise<SmartResult> {
   const base = analyze(input.records, input.businessId);
   const report = runLeakEngines({ normalized: input.normalized, records: input.records, asOf: input.asOf });
-  const coveredTitles = report.checks.filter((c) => c.status !== 'NOT_ENOUGH_DATA' && COVERED[c.category]).map((c) => COVERED[c.category]);
-  const findings = [...report.leaks.map((l) => l.finding), ...base.findings.filter((f) => !coveredTitles.some((t) => f.title.startsWith(t)))];
+  const findings = mergeFindings(base.findings, report);
   const sufficiency = assessSufficiency({ business: input.business, normalized: input.normalized, records: input.records, findings });
   const needText = sufficiency.needs.map((n) => n.message);
   if (sufficiency.verdict === 'NEED_MORE_DATA') {
@@ -53,7 +52,7 @@ export async function runSmartAnalysis(input: {
   const message = findings.length ? 'Analysis complete.' : `${INSUFFICIENT} No validated engine produced a finding from the data provided so far.`;
   const deterministic = (error?: string): SmartResult => ({ status: 'DETERMINISTIC_ONLY', message, provider: 'DETERMINISTIC', model: null, error, sufficiency, findings, report, answer: merge(fallback(findings, needText)), evidenceCount: pack.items.length, fingerprint: pack.fingerprint });
   try {
-    const ai = await (input.provider || callAIProvider)(pack.context, 'DEEP', { timeoutMs: input.timeoutMs ?? (Number(process.env.BIZBETTER_SMART_ANALYSIS_TIMEOUT_MS) || 270_000), maxOutputTokens: 16000, grokModel: process.env.BIZBETTER_SMART_ANALYSIS_MODEL || 'grok-4.20-0309-reasoning' });
+    const ai = await (input.provider || callAIProvider)(pack.context, 'DEEP', { timeoutMs: input.timeoutMs ?? (Number(process.env.BIZBETTER_SMART_ANALYSIS_TIMEOUT_MS) || 270_000), maxOutputTokens: 16000, grokModel: process.env.BIZBETTER_SMART_ANALYSIS_MODEL || process.env.BIZBETTER_AI_GROK_MODEL || 'grok-4.20-0309-reasoning' });
     if (!ai) return deterministic();
     const { answer, removed } = salvageAnswer(ai.value, pack.items);
     return { status: 'AI_ANALYSIS', message, provider: ai.provider, model: ai.model, sufficiency, findings, report, answer: merge(answer), evidenceCount: pack.items.length, fingerprint: pack.fingerprint,

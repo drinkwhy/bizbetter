@@ -4,7 +4,9 @@ import { DOC_KINDS, type CanonicalRow, type CellValue, type DocKind, type Extrac
 import { parseAnyDate, parseMoneyMinor, parseNumber } from './parse';
 
 export const DOCUMENT_MAPPING_VERSION = 'document-ingest-1';
-const MONEY = new Set(['amount', 'debit', 'credit', 'balance', 'amount_paid', 'open_balance', 'revenue', 'labor_cost', 'material_cost', 'hourly_rate', 'gross_wages', 'overtime_pay', 'gross', 'fee', 'net', 'expenses', 'net_profit']);
+const MONEY = new Set(['amount', 'debit', 'credit', 'balance', 'amount_paid', 'open_balance', 'revenue', 'labor_cost', 'material_cost', 'hourly_rate', 'gross_wages', 'overtime_pay', 'gross', 'fee', 'net', 'expenses', 'net_profit', 'spend']);
+const HOURS = new Set(['regular_hours', 'overtime_hours', 'labor_hours', 'billable_hours', 'nonbillable_hours', 'leads']);
+const yesNo = (v: unknown) => { const t = String(v ?? '').trim().toLowerCase(); if (!t) return null; if (/^(y|yes|true|1|x|callback|rework)$/.test(t)) return 'yes'; if (/^(n|no|false|0|-)$/.test(t)) return 'no'; return 'yes'; };
 const STOP = new Set(['the', 'inc', 'llc', 'co', 'monthly', 'subscription', 'payment', 'pmt', 'ach', 'autopay', 'pos', 'debit', 'purchase', 'online', 'www', 'com', 'recurring', 'card', 'sale']);
 /** Stable vendor key: lowercase words without reference numbers or filler words. */
 export const vendorKey = (s: string) => s.toLowerCase().replace(/[^a-z0-9#\s&-]/g, ' ').split(/\s+/).filter((w) => w && !/\d/.test(w) && !STOP.has(w) && w.length > 1).join(' ');
@@ -34,7 +36,7 @@ export function documentToEvidence(doc: ExtractedDocument, opts: { businessId: s
   for (const r of rows) {
     const date = parseAnyDate((r.values.date ?? null) as CellValue); const due = parseAnyDate((r.values.due_date ?? null) as CellValue);
     const nv: NormalizedBusinessRecord['normalizedValues'] = { doc_kind: kind };
-    for (const [k, v] of Object.entries(r.values)) { if (v === null || v === undefined) continue; if (MONEY.has(k)) { const c = parseMoneyMinor(v as CellValue); nv[k] = c === null ? null : c / 100; } else if (k === 'regular_hours' || k === 'overtime_hours') nv[k] = parseNumber(v as CellValue); else nv[k] = typeof v === 'number' ? v : String(v).slice(0, 300); }
+    for (const [k, v] of Object.entries(r.values)) { if (v === null || v === undefined) continue; if (MONEY.has(k)) { const c = parseMoneyMinor(v as CellValue); nv[k] = c === null ? null : c / 100; } else if (HOURS.has(k)) nv[k] = parseNumber(v as CellValue); else nv[k] = typeof v === 'number' ? v : String(v).slice(0, 300); }
     if (date) nv.date = date; if (due) nv.due_date = due;
     let signed: number | null = null;
     if (kind === 'bank_statement' || kind === 'card_statement') { signed = signedAmount(r, flip); nv.amount = signed === null ? null : signed / 100; const desc = String(r.values.description || r.values.vendor || ''); nv.vendor = String(r.values.vendor || desc).slice(0, 200); nv.vendor_key = vendorKey(String(nv.vendor)); if (signed !== null && signed < 0) nv.expense = -signed / 100; }
@@ -42,6 +44,16 @@ export function documentToEvidence(doc: ExtractedDocument, opts: { businessId: s
     if (kind === 'job_costing' && nv.revenue === undefined && nv.amount !== undefined) nv.revenue = nv.amount;
     if (kind === 'invoices' && nv.amount === undefined && nv.revenue !== undefined) nv.amount = nv.revenue;
     if (kind === 'payroll' && nv.labor_cost === undefined && typeof nv.gross_wages === 'number') nv.labor_cost = nv.gross_wages;
+    // Field names used by the analysis-readiness rules (lib/intake/capabilities.ts). Copies only, never computed amounts.
+    if (kind === 'invoices' && nv.revenue === undefined && typeof nv.amount === 'number') nv.revenue = nv.amount;
+    if (kind === 'payroll' && (typeof nv.regular_hours === 'number' || typeof nv.overtime_hours === 'number')) nv.labor_hours = Number(nv.regular_hours ?? 0) + Number(nv.overtime_hours ?? 0);
+    if (kind === 'timesheet' && (typeof nv.billable_hours === 'number' || typeof nv.nonbillable_hours === 'number')) nv.labor_hours = Number(nv.billable_hours ?? 0) + Number(nv.nonbillable_hours ?? 0);
+    if ((kind === 'job_costing' || kind === 'marketing') && typeof nv.lead_source === 'string') nv.marketing_source = nv.lead_source.trim();
+    if (kind === 'marketing' && typeof nv.spend === 'number') nv.marketing_spend = nv.spend;
+    if (kind === 'job_costing' && r.values.callback !== undefined) nv.callback_indicator = yesNo(r.values.callback);
+    if (kind === 'pnl') { const sec = String(r.values.section || ''); const a = parseMoneyMinor((r.values.amount ?? null) as CellValue);
+      if (a !== null && (sec === 'total_income' || ((sec === 'income' || sec === 'other_income') && !hasTotals))) nv.revenue = a / 100;
+      if (a !== null && ['expense', 'cogs', 'other_expense'].includes(sec)) { nv.expense = a / 100; nv.category = String(r.values.line || ''); } }
     const nid = createHash('sha256').update(JSON.stringify([opts.businessId, opts.importId, r.index])).digest('hex');
     normalized.push({ id: nid, businessId: opts.businessId, importId: opts.importId, datasetType: meta.dataset, sourceSystem, sourceFile: doc.fileName, sourceSheet: r.loc, sourceRow: r.row ?? r.index + 1,
       originalRecordIdentifier: String(r.values.invoice_id || r.values.job_id || '') || undefined, originalValues: { ...r.values, _location: r.loc, ...(r.sourceText ? { _sourceText: r.sourceText } : {}) },
@@ -64,12 +76,15 @@ export function documentToEvidence(doc: ExtractedDocument, opts: { businessId: s
       case 'invoices': { const id = String(r.values.invoice_id || '') || undefined; add('invoice_contract', m('amount') ?? m('revenue'), id); add('invoice_paid', m('amount_paid'), id); add('receivable', m('open_balance'), id); break; }
       case 'job_costing': { const id = String(r.values.job_id || '') || undefined; add('job_revenue', m('revenue') ?? m('amount'), id); add('job_labor', m('labor_cost'), id); add('job_materials', m('material_cost'), id); break; }
       case 'payroll': { const e = String(r.values.employee || '') || undefined; add('payroll_cost', m('gross_wages'), e); add('overtime_cost', m('overtime_pay'), e); break; }
+      case 'timesheet': { const e = String(r.values.employee || '') || undefined; const h = (f: string) => { const x = parseNumber((r.values as Record<string, CellValue>)[f] ?? null); return x === null ? null : Math.round(x * 100); };
+        add('hours', h('billable_hours'), e ? `${e} - billable` : 'billable'); add('hours', h('nonbillable_hours'), e ? `${e} - non-billable` : 'non-billable'); break; }
+      case 'marketing': add('marketing_cost', m('spend'), String(r.values.lead_source || '') || undefined); break;
       case 'processor_fees': { const f = m('fee'); add('fees', f === null ? null : Math.abs(f)); add('payment_gross', m('gross')); add('payment_net', m('net')); break; }
       default: break;
     }
     const periodStart = date, periodEnd = kind === 'pnl' && date.endsWith('-01') ? monthEnd(date) : date;
-    for (const o of out) {
-      const sourceRecordId = `${doc.sha256.slice(0, 12)}:${r.index}:${o.metric}`;
+    for (let oi = 0; oi < out.length; oi++) { const o = out[oi];
+      const sourceRecordId = `${doc.sha256.slice(0, 12)}:${r.index}:${o.metric}${out.findIndex((x) => x.metric === o.metric) === oi ? '' : ':' + oi}`;
       records.push({ id: createHash('sha256').update(JSON.stringify([opts.businessId, opts.importId, sourceRecordId, o.minor])).digest('hex'), businessId: opts.businessId, environment: 'REAL', sourceSystem, sourceRecordId, syncId: opts.importId,
         periodStart, periodEnd, importedAt: now, metric: o.metric, value: o.minor, currency, decimals: 2, basis: `${meta.label} document; owner reviewed`, entityId: o.entity, complete: opts.complete,
         verification: 'OWNER_ENTERED', importId: opts.importId, normalizedRecordId: nid, sourceFile: doc.fileName, sourceSheet: r.loc, sourceRow: r.row ?? r.index + 1, originalRecordIdentifier: o.entity });
