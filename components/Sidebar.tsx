@@ -19,6 +19,7 @@ import {
 
 const NAV_ITEMS = [
   { name: 'Overview', href: '/', icon: LayoutDashboard },
+  { name: 'Smart Analysis', href: '/smart-analysis', icon: Bot, isNew: true },
   { name: 'Financials', href: '/financials', icon: DollarSign },
   { name: 'Profit Leaks', href: '/leaks', icon: AlertTriangle },
   { name: 'Opportunities', href: '/opportunities', icon: Lightbulb },

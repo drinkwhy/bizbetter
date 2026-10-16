@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Finding, SourceRecord, Decision, LedgerItem, INSUFFICIENT } from '@/lib/evidence/model';
 
-type Workspace = {
+export type Workspace = {
   message: string;
   quality: { score: number | null; formula: string; criteria: Record<string, boolean>; limitations: string[] };
   findings: Finding[];
@@ -189,6 +189,7 @@ export function EvidenceWorkspace({
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{labels[section] || labels.overview}</h1>
+      {section === 'overview' && <Link href="/smart-analysis" className="block rounded-lg border border-emerald-500/60 bg-emerald-500/10 p-3 text-sm text-emerald-200 hover:bg-emerald-500/20">New here? Start the guided smart analysis: we walk you through the financials to provide, then explain findings, fixes and prevention.</Link>}
       <p className="text-slate-400">
         Source-backed observations are separate from hypotheses, savings opportunities and measured outcomes. No
         source means UNKNOWN.
@@ -525,7 +526,7 @@ export function EvidenceWorkspace({
 }
 
 /* ---------- Clean finding card ---------- */
-function FindingCard({
+export function FindingCard({
   finding: f,
   records,
   data,
