@@ -43,10 +43,10 @@ async function main() {
   assert.equal(det.findings.find((f) => f.title.includes('JOB-1042'))!.impactMinor, 155_000);
   assert.ok(det.answer!.recommendations.length > 0);
 
-  // 6. A model answer with a fabricated number is rejected; deterministic output stays.
+  // 6. A fabricated number is stripped from the model answer (salvaged); deterministic output stays.
   const fabricated = await runSmartAnalysis({ businessId: TEST_BUSINESS, business: profile, normalized: [], records: full,
     provider: async (ctx) => { const id = (ctx as { items: Array<{ id: string }> }).items[0].id; return { provider: 'GROK', model: 'stub', usage: null, value: { summary: 'You could save $98,765 per year.', facts: [{ text: 'Loss', evidenceIds: [id] }], patterns: [], hypotheses: [], recommendations: [], additionalDataNeeded: [], confidence: 'HIGH', limitations: [], questionsForOwner: [] } }; } });
-  assert.equal(fabricated.status, 'DETERMINISTIC_ONLY'); assert.match(fabricated.error || '', /Unsupported quantitative/);
+  assert.equal(fabricated.status, 'AI_ANALYSIS'); assert.ok(!JSON.stringify(fabricated.answer).includes('98,765')); assert.match(fabricated.answer!.summary, /withheld/); assert.ok(fabricated.findings.some((f) => f.title.includes('JOB-1042')));
 
   // 7. Uncited claims are rejected.
   const uncited = await runSmartAnalysis({ businessId: TEST_BUSINESS, business: profile, normalized: [], records: full,

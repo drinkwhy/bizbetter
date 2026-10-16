@@ -4,9 +4,11 @@ import { BUSINESS_ID, intakeWorkspace, listBusinesses } from '@/lib/evidence/rep
 import { runSmartAnalysis } from '@/lib/smart-analysis/run';
 import { assessSufficiency } from '@/lib/smart-analysis/sufficiency';
 import { GUIDED_STEPS } from '@/lib/smart-analysis/steps';
+import { loadReport, saveReport } from '@/lib/smart-analysis/reports';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const maxDuration = 300;
 const calls = new Map<string, number[]>();
 
 async function scoped(raw: unknown) {
@@ -21,7 +23,8 @@ export async function GET(req: NextRequest) {
     assertLocal(req);
     const { businesses, data, businessId } = await scoped(req.nextUrl.searchParams.get('businessId'));
     const sufficiency = assessSufficiency({ business: data.business, normalized: data.normalized, records: data.sourceRecords, findings: data.analysis.findings });
-    return NextResponse.json({ businesses, businessId, business: data.business, steps: GUIDED_STEPS, sufficiency }, { headers: { 'Cache-Control': 'no-store' } });
+    const last = await loadReport<Record<string, unknown>>(businessId);
+    return NextResponse.json({ businesses, businessId, business: data.business, steps: GUIDED_STEPS, sufficiency, last }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e) { return NextResponse.json({ error: e instanceof Error ? e.message : 'Unable to load guided intake.' }, { status: 400 }); }
 }
 
@@ -35,8 +38,10 @@ export async function POST(req: NextRequest) {
     calls.set(who, [...recent, now]);
     const body = await req.json().catch(() => ({}));
     const { data, businessId } = await scoped(body.businessId);
-    const result = await runSmartAnalysis({ businessId, business: data.business, normalized: data.normalized, records: data.sourceRecords });
-    return NextResponse.json({ businessId, generatedAt: new Date().toISOString(), ...result, records: data.sourceRecords, decisions: data.decisions, ledger: data.ledger },
-      { headers: { 'Cache-Control': 'no-store' } });
+    const asOf = typeof body.asOf === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(body.asOf) ? body.asOf : undefined;
+    const result = await runSmartAnalysis({ businessId, business: data.business, normalized: data.normalized, records: data.sourceRecords, asOf });
+    const response = { businessId, businessName: data.business.name, industry: data.business.industry || null, generatedAt: new Date().toISOString(), ...result, records: data.sourceRecords, decisions: data.decisions, ledger: data.ledger };
+    await saveReport(businessId, { ...response, records: undefined });
+    return NextResponse.json(response, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e) { return NextResponse.json({ error: e instanceof Error ? e.message : 'Analysis unavailable.' }, { status: 400 }); }
 }

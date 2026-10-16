@@ -1,0 +1,31 @@
+Job #,Completed Date,Customer,Job Type,Revenue,Labor Cost,Material Cost
+J-3101,2026-07-02,Riverside Clinic,Drain cleaning,480.00,150.00,40.00
+J-3102,2026-07-06,M. Schultz,Furnace repair,935.00,314.00,223.00
+J-3103,2026-07-09,K. Nguyen,AC tune-up,290.00,98.00,31.00
+J-3104,2026-07-13,Benton Ag Supply,Boiler service,785.00,272.00,129.00
+J-3105,2026-07-16,T. Becker,Water heater install,1910.00,626.00,792.00
+J-3106,2026-07-20,Waite Park Hotel,Leak repair,615.00,200.00,85.00
+J-3107,2026-07-23,J. Larson,Boiler replacement,6200.00,3950.00,3180.00
+J-3108,2026-07-27,Northway Church,Furnace repair,1025.00,338.00,241.00
+J-3109,2026-07-30,D. Patel,AC tune-up,380.00,122.00,49.00
+J-3110,2026-08-03,Granite City Apts,Water heater install,1720.00,690.00,890.00
+J-3111,2026-08-06,Sartell Foods,Water heater install,2000.00,650.00,810.00
+J-3112,2026-08-10,A. Johnson,Leak repair,705.00,224.00,103.00
+J-3113,2026-08-13,Crossroads Mall,Drain cleaning,660.00,198.00,76.00
+J-3114,2026-08-17,L. Meyer,Furnace repair,1115.00,362.00,259.00
+J-3115,2026-08-20,R. Hoffman,Water heater install,1790.00,720.00,910.00
+J-3116,2026-08-24,St. Joseph Bakery,Boiler service,965.00,320.00,165.00
+J-3117,2026-08-27,E. Kowalski,Water heater install,2090.00,674.00,828.00
+J-3118,2026-08-31,Rice Veterinary,Leak repair,795.00,248.00,121.00
+J-3119,2026-09-03,P. Anderson,Drain cleaning,750.00,222.00,94.00
+J-3120,2026-09-07,Clearwater Motel,Furnace repair,1205.00,386.00,277.00
+J-3121,2026-09-10,St. Cloud Brewing,Water heater install,1650.00,980.00,1140.00
+J-3122,2026-09-14,B. Thompson,Boiler service,1055.00,344.00,183.00
+J-3123,2026-09-17,Lakeside Dental,Water heater install,2180.00,698.00,846.00
+J-3124,2026-09-21,Sauk Rapids Schools,Water heater install,1760.00,700.00,905.00
+J-3125,2026-09-24,C. Olson,Drain cleaning,840.00,246.00,112.00
+J-3126,2026-09-28,G. Weber,Furnace repair,1295.00,410.00,295.00
+J-3127,2026-09-29,H. Klein,AC tune-up,650.00,194.00,103.00
+J-3128,2026-09-30,I. Ruiz,Repipe,9800.00,6450.00,4120.00
+J-3129,2026-09-30,N. Peters,Water heater install,2270.00,722.00,864.00
+J-3130,2026-09-30,O. Hanson,Leak repair,975.00,296.00,157.00

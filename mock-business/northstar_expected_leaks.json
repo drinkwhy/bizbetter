@@ -1,0 +1,147 @@
+{
+  "business": {
+    "name": "Northstar Plumbing & Heating",
+    "industry": "Plumbing & HVAC contractor",
+    "location": "St. Cloud, MN (fictional)"
+  },
+  "planted": {
+    "losing_months": {
+      "months": [
+        {
+          "month": "2026-04",
+          "net_income": -14120
+        },
+        {
+          "month": "2026-07",
+          "net_income": -14740
+        }
+      ],
+      "total_loss": 28860
+    },
+    "cost_trending_up": {
+      "Fuel": {
+        "first3": [
+          1850,
+          1920,
+          2010
+        ],
+        "last3": [
+          2790,
+          2950,
+          3150
+        ]
+      },
+      "Software Subscriptions": {
+        "first3": [
+          640,
+          640,
+          640
+        ],
+        "last3": [
+          940,
+          990,
+          1040
+        ]
+      }
+    },
+    "duplicate_bank_charge": {
+      "vendor": "FERGUSON SUPPLY #4471 ACH",
+      "amount": 2418.37,
+      "dates": [
+        "2026-09-08",
+        "2026-09-09"
+      ]
+    },
+    "subscription_creep": {
+      "vendor": "FIELDPRO SOFTWARE SUBSCRIPTION",
+      "monthly": [
+        149,
+        149,
+        199,
+        199,
+        249,
+        249
+      ],
+      "excess_over_first": 300
+    },
+    "duplicate_card_charge": {
+      "vendor": "HOME DEPOT #2231",
+      "amount": 612.48,
+      "date": "2026-07-14"
+    },
+    "overlapping_subscriptions_grok_only": [
+      "QUICKFLEET GPS MONTHLY 89.00",
+      "FLEETTRACK PRO GPS 94.00"
+    ],
+    "overdue_invoices": {
+      "as_of": "2026-10-16",
+      "invoices": [
+        {
+          "invoice": "INV-2041",
+          "outstanding": 4850
+        },
+        {
+          "invoice": "INV-2047",
+          "outstanding": 5325
+        },
+        {
+          "invoice": "INV-2052",
+          "outstanding": 1280
+        },
+        {
+          "invoice": "INV-2058",
+          "outstanding": 3960
+        }
+      ],
+      "total": 15415
+    },
+    "losing_jobs": {
+      "jobs": [
+        {
+          "job": "J-3107",
+          "loss": 930
+        },
+        {
+          "job": "J-3121",
+          "loss": 470
+        },
+        {
+          "job": "J-3128",
+          "loss": 770
+        }
+      ],
+      "total": 2170
+    },
+    "underpriced_jobs": {
+      "jobs": [
+        "J-3110",
+        "J-3115",
+        "J-3124"
+      ],
+      "note": "Water heater installs with positive but thin margins"
+    },
+    "overtime": {
+      "total_overtime_pay": 16842.75,
+      "total_gross": 119322.75,
+      "overtime_premium_estimate": 5614.25,
+      "heavy_ot": [
+        "Jake Lindgren",
+        "Marcus Olson"
+      ]
+    },
+    "processor_fees": {
+      "total_fees": 20451.32,
+      "total_gross": 576096.0,
+      "effective_rate": 3.55,
+      "excess_over_2_9pct": 3744.54
+    },
+    "receipt_image": {
+      "total": 362.3,
+      "note": "Image: AI-read via Grok vision, requires owner confirmation"
+    }
+  },
+  "pnl_totals": {
+    "total_income": 1200200,
+    "net_income": 41970
+  }
+}

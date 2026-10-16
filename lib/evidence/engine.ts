@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
 import { SourceRecord, Finding, Benchmark, ENGINE_VERSION, INSUFFICIENT, Decision, LedgerItem } from './model';
-const metrics=new Set(['revenue','net_profit','fees','payment_net','job_revenue','job_labor','job_materials','invoice_paid','invoice_contract','labor_cost','jobs','hours','marketing_cost','customers','expenses','vendor_spend','gross_profit','cogs','receivable','payroll_cost','overtime_hours']);
+const metrics=new Set(['revenue','net_profit','fees','payment_net','job_revenue','job_labor','job_materials','invoice_paid','invoice_contract','labor_cost','jobs','hours','marketing_cost','customers','expenses','vendor_spend','gross_profit','cogs','receivable','payroll_cost','overtime_hours','overtime_cost','payment_gross']);
 export function validDate(s:string){return /^\d{4}-\d{2}-\d{2}$/.test(s)&&Number.isFinite(Date.parse(s))&&new Date(s).toISOString().slice(0,10)===s;}
 export function validateRecords(records:SourceRecord[],businessId:string){
  if(records.length>100000)throw new Error('Record limit exceeded.');
