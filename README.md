@@ -58,6 +58,31 @@ For temporary testing with the fictional Apex Comfort Solutions data only:
 2. Default model is `gemini-3.1-flash-lite`. Override with `BIZBETTER_DEMO_GEMINI_MODEL` if needed.
 3. This path lives exclusively under `lib/demo/engines/gemini-analyst.ts` and is never imported by production routes. It is exercised by `npm run test:demo` when a key is present.
 
+## Guided smart analysis (/smart-analysis)
+
+Owners start at **Smart Analysis** (sidebar, Overview banner, and step 2 of the setup guide). The page walks through each item the engines can use, explains why it is needed, the accepted formats and the columns to include, and shows a checklist with progress (Provided / Partly provided / Missing):
+
+| Step | Required | Used by |
+| --- | --- | --- |
+| Business profile (name + industry) | yes | scoping; saved on the current workspace |
+| Profit & loss (3+ months) | yes | reported-loss finding; revenue trend at 8+ months |
+| Bank & credit card statements | no | expense/vendor evidence for the AI analyst (no dedicated engine yet) |
+| Invoices & A/R | no | payment-vs-invoice mismatch checks |
+| Job costing (job ID, revenue, labor, materials) | no | negative job contribution findings |
+| Payroll & time | no | labor evidence for the AI analyst (no overtime engine yet) |
+| Payment processor fees | no | processing-fee review findings (map a fee column to "Processing fee") |
+
+Each step links to Data Intake (`/data-intake?step=<id>`) for CSV/XLSX upload or manual entry; a banner there repeats the guidance and links back. PDF statements are not parsed: download the CSV version from the bank/processor portal.
+
+**Run smart analysis** (`POST /api/smart-analysis`, logic in `lib/smart-analysis/`):
+1. `assessSufficiency` (pure, deterministic) decides READY or NEED_MORE_DATA. If required items are missing, the response is "Insufficient data to determine this reliably." plus an exact list of what to provide, each linked to its step. **No AI call is made** in that case.
+2. Otherwise the deterministic engines produce findings, the Evidence Gateway builds the minimized evidence package, and the configured provider (xAI Grok, `grok-4.7` by default) explains it. The answer still passes `validateAnswer`: every claim must cite evidence IDs and no number may appear that is not in the evidence. If the model fails, times out or is rejected, deterministic findings and fixes are shown instead.
+3. Results reuse the finding cards (what happened, likely causes, step-by-step fix, prevention). Money amounts come only from engine calculations. If no engine produced a finding, the result says so and names the step that would unlock one.
+
+Grok responses typically take 1-3 minutes; the smart analysis timeout is `BIZBETTER_SMART_ANALYSIS_TIMEOUT_MS` (default 180000).
+
+Tests: `npx tsx scripts/verify-smart-analysis.ts` (offline). Live check with fictional in-memory data (nothing is written to `.bizbetter-data`): `npx tsx --env-file=.env scripts/check-smart-analysis-live.ts`.
+
 ## Verification
 
 ```powershell
