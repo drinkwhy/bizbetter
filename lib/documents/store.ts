@@ -1,8 +1,9 @@
+import { dataDir } from '@/lib/paths';
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { ExtractedDocument } from './types';
 
-const root = () => path.join(process.cwd(), '.bizbetter-data', 'documents');
+const root = () => dataDir('documents');
 const safeId = (s: string) => { if (!/^[-a-zA-Z0-9_]{1,80}$/.test(s)) throw new Error('Invalid identifier.'); return s; };
 const safeName = (s: string) => path.basename(s).replace(/[^\w.\- ()&]+/g, '_').slice(0, 120) || 'file';
 

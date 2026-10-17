@@ -1,0 +1,15 @@
+.git
+node_modules
+.next
+.env
+.env.*
+!.env.example
+.bizbetter-data
+prisma/*.db
+prisma/*.db-*
+*.log
+mock-business
+output
+bizbetter
+.playwright-cli
+*.tsbuildinfo

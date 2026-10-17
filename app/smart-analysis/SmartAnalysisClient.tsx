@@ -52,9 +52,18 @@ export function SmartAnalysisClient({ initialBusinessId, initialStep }: { initia
   async function run() {
     setBusy(true); setError('');
     try {
-      const r = await fetch('/api/smart-analysis', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ businessId }) });
-      const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Analysis unavailable.');
-      setResult(d); setTimeout(() => document.getElementById('smart-results')?.scrollIntoView({ behavior: 'smooth' }), 50);
+      // Start a background job and poll, so long Grok runs survive proxy idle timeouts.
+      const r = await fetch('/api/smart-analysis', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ businessId, background: true }) });
+      const start = await r.json(); if (!r.ok) throw new Error(start.error || 'Analysis unavailable.');
+      let d = start;
+      for (let i = 0; i < 240 && d.status === 'running'; i++) {
+        await new Promise((ok) => setTimeout(ok, 2500));
+        const p = await fetch('/api/smart-analysis?jobId=' + encodeURIComponent(start.jobId), { cache: 'no-store' });
+        d = await p.json(); if (!p.ok) throw new Error(d.error || 'Analysis unavailable.');
+      }
+      if (d.status === 'error') throw new Error(d.error || 'Analysis unavailable.');
+      if (d.status !== 'done') throw new Error('The analysis is taking longer than expected. Reload the page in a minute to see the saved report.');
+      setResult(d.result); setTimeout(() => document.getElementById('smart-results')?.scrollIntoView({ behavior: 'smooth' }), 50);
     } catch (err) { setError(err instanceof Error ? err.message : 'Analysis unavailable.'); } finally { setBusy(false); }
   }
 

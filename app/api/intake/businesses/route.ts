@@ -1,7 +1,9 @@
 import { NextRequest,NextResponse } from 'next/server';
 import { assertLocal } from '@/lib/evidence/access';
-import { createBusiness,listBusinesses,updateBusiness } from '@/lib/evidence/repository';
+import { createBusiness,deleteBusiness,listBusinesses,updateBusiness } from '@/lib/evidence/repository';
+import { removeWorkspaceFiles } from '@/lib/evidence/cleanup';
 export const runtime='nodejs';export const dynamic='force-dynamic';
 export async function GET(req:NextRequest){try{assertLocal(req);return NextResponse.json({businesses:await listBusinesses()},{headers:{'Cache-Control':'no-store'}});}catch{return NextResponse.json({error:'Unable to list local businesses.'},{status:403});}}
 export async function POST(req:NextRequest){try{assertLocal(req,true);const b=await req.json();const business=await createBusiness(String(b.name||''),typeof b.industry==='string'?b.industry:undefined);return NextResponse.json({business},{status:201});}catch(e){return NextResponse.json({error:e instanceof Error?e.message:'Unable to create business workspace.'},{status:400});}}
 export async function PATCH(req:NextRequest){try{assertLocal(req,true);const b=await req.json();if(typeof b.businessId!=='string')throw new Error('Choose a business workspace.');const business=await updateBusiness(b.businessId,{name:typeof b.name==='string'?b.name:undefined,industry:typeof b.industry==='string'?b.industry:undefined});return NextResponse.json({business});}catch(e){return NextResponse.json({error:e instanceof Error?e.message:'Unable to update business profile.'},{status:400});}}
+export async function DELETE(req:NextRequest){try{assertLocal(req,true);const b=await req.json().catch(()=>({}));if(typeof b.businessId!=='string'||b.confirm!==true)throw new Error('Send businessId and confirm: true to delete a workspace.');const result=await deleteBusiness(b.businessId);await removeWorkspaceFiles(b.businessId);return NextResponse.json({deleted:result});}catch(e){return NextResponse.json({error:e instanceof Error?e.message:'Unable to delete business workspace.'},{status:400});}}

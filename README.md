@@ -150,3 +150,21 @@ PLAYWRIGHT_MODULE=<path>/node_modules/playwright node scripts/e2e-ui-northstar.c
 ```
 
 It uploads all mock files (plus an unknown binary that is discarded), confirms the vision-read receipt, imports, saves the profile, runs Smart Analysis with live Grok, exports CSV/JSON, loads every page checking console errors / failed requests / 5xx, checks the readiness checklist, records a decision, starts Money Found tracking, asks the AI Analyst, parses a CSV, saves Settings, walks the setup guide and probes every API route. Results go to `mock-business/e2e-ui-results.json`.
+
+## Hosting on Railway
+
+The repo ships a `Dockerfile` and `railway.json` (Dockerfile builder, healthcheck on `/login`).
+
+- **Access gate.** Set `BIZBETTER_ACCESS_PASSWORD` and every page and API needs a sign-in at `/login`
+  (signed, httpOnly, `SameSite=Lax`, `Secure` cookie valid for 7 days; 8 failed attempts per minute per IP are throttled).
+  Unset, the gate is off and the app keeps its localhost-only behaviour. Hosted writes must come from the same
+  origin (`RAILWAY_PUBLIC_DOMAIN` or `BIZBETTER_PUBLIC_HOSTS`).
+- **Persistence.** Mount a volume at `/data` and set `DATABASE_URL=file:/data/bizbetter.db` and
+  `BIZBETTER_DATA_DIR=/data/bizbetter`. The evidence store, staged uploads, original documents, saved reports and
+  integration snapshots all go under `BIZBETTER_DATA_DIR`; `prisma migrate deploy` runs on every start.
+- **Build.** pnpm 11 approves the prisma/esbuild install scripts through `allowBuilds` in `pnpm-workspace.yaml`.
+- **Long analyses.** The Smart Analysis page starts a background job (`POST /api/smart-analysis` with
+  `background: true`) and polls `GET /api/smart-analysis?jobId=…`, so 1–4 minute Grok runs don't depend on one
+  long HTTP request. Jobs live in memory, so a restart mid-run means running it again.
+- **Workspaces** can be deleted with `DELETE /api/intake/businesses` `{ "businessId": "…", "confirm": true }`
+  (the main workspace cannot be deleted).

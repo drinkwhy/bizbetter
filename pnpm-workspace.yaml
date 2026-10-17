@@ -1,5 +1,7 @@
+# pnpm 11 blocks dependency install scripts unless approved. Prisma generates its client and engines,
+# and esbuild (used by tsx) downloads its binary, so both must be allowed for local and Railway builds.
 allowBuilds:
-  '@prisma/client': set this to true or false
-  '@prisma/engines': set this to true or false
-  esbuild: set this to true or false
-  prisma: set this to true or false
+  '@prisma/client': true
+  '@prisma/engines': true
+  esbuild: true
+  prisma: true

@@ -1,3 +1,4 @@
+import { dataDir } from '@/lib/paths';
 import { createHash, randomUUID } from 'crypto';
 import { appendRecords, BUSINESS_ID } from '../evidence/repository';
 import { SourceRecord } from '../evidence/model';
@@ -5,7 +6,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { providers } from './catalog';
 import { analyzeEvidence, Evidence } from './analysis';
-const folder=path.join(process.cwd(),'.bizbetter-data');
+const folder=dataDir();
 type idMetric=['revenue'|'net_profit'|'fees'|'payment_net',number|undefined];
 const busy=new Set<string>();
 export async function saved(id:string) { try { return JSON.parse(await fs.readFile(path.join(folder,id+'.json'),'utf8')); } catch { return null; } }
