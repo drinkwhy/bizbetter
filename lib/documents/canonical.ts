@@ -33,6 +33,8 @@ const ALIASES: Partial<Record<CanonicalField, string[]>> = {
   callback: ['callback', 'is callback', 'rework', 'callback of', 'warranty callback'],
   spend: ['ad spend', 'spend', 'marketing spend', 'amount spent', 'cost'],
   leads: ['leads', 'lead count'],
+  hours: ['total hours', 'hours worked', 'worked hours', 'duration hours', 'entry hours'],
+  billable: ['billable', 'is billable', 'billable y n', 'billable flag'],
   regular_hours: ['regular hours', 'reg hours', 'reg hrs', 'regular hrs', 'hours'],
   overtime_hours: ['overtime hours', 'ot hours', 'ot hrs', 'overtime hrs', 'overtime'],
   hourly_rate: ['hourly rate', 'rate', 'pay rate'],
@@ -74,7 +76,7 @@ export const isWidePnl = (t: Table) => monthColumns(t).length >= 3;
 export function mapColumns(headers: string[], kind: DocKind): Array<CanonicalField | null> {
   const prefer: Partial<Record<DocKind, CanonicalField[]>> = {
     job_costing: ['job_id', 'revenue', 'labor_cost', 'material_cost', 'job_type', 'customer', 'date', 'technician', 'labor_hours', 'lead_source', 'callback'],
-    timesheet: ['employee', 'date', 'billable_hours', 'nonbillable_hours', 'job_id'],
+    timesheet: ['employee', 'date', 'billable_hours', 'nonbillable_hours', 'hours', 'billable', 'job_id'],
     marketing: ['date', 'lead_source', 'spend', 'leads'],
     invoices: ['invoice_id', 'customer', 'amount', 'amount_paid', 'open_balance', 'due_date', 'status', 'date'],
     payroll: ['employee', 'regular_hours', 'overtime_hours', 'hourly_rate', 'gross_wages', 'overtime_pay', 'date'],
@@ -104,16 +106,28 @@ export function scoreKind(fileName: string, headers: string[], text = ''): { kin
   if (f.includes('invoice_id')) s.invoices += 3; if (f.includes('due_date')) s.invoices += 2; if (has(f as CanonicalField[], 'amount_paid', 'open_balance')) s.invoices += 2;
   if (f.includes('employee')) s.payroll += 2; if (has(f as CanonicalField[], 'overtime_hours', 'regular_hours')) s.payroll += 2; if (has(f as CanonicalField[], 'gross_wages', 'overtime_pay')) s.payroll += 3;
   if (has(f as CanonicalField[], 'billable_hours', 'nonbillable_hours')) s.timesheet += 6;
+  // Clock-in/out time entries: one row per entry with a billable flag and the hours worked.
+  const nh = headers.map(normHeader);
+  if (f.includes('billable') && has(f as CanonicalField[], 'hours', 'regular_hours')) { s.timesheet += 6; why.push('billable flag with hours'); }
+  if (nh.some((h) => /^(clock|time|punch) (in|out)$/.test(h))) { s.timesheet += 3; why.push('clock in/out columns'); }
   if (f.includes('spend') && f.includes('lead_source') && !f.includes('job_id')) s.marketing += 6;
   if (f.includes('fee')) s.processor_fees += 3; if (f.includes('net')) s.processor_fees += 1; if (f.includes('gross')) s.processor_fees += 2;
   const txn = (f.includes('date') ? 1 : 0) + (f.includes('description') ? 2 : 0) + (has(f as CanonicalField[], 'amount', 'debit', 'credit') ? 2 : 0);
   s.bank_statement += txn + (f.includes('balance') ? 2 : 0); s.card_statement += txn;
+  // A dated, row-per-transaction table (bank/QuickBooks/GL/card export) is a transaction ledger, never a P&L:
+  // P&L statements summarize by account and carry no per-row dates. Card evidence decides card vs bank.
+  const ledger = f.includes('date') && has(f as CanonicalField[], 'amount', 'debit', 'credit') && has(f as CanonicalField[], 'description', 'category', 'vendor')
+    && !has(f as CanonicalField[], 'job_id', 'gross_wages', 'billable_hours', 'billable', 'fee', 'spend');
+  const cardHeader = nh.some((h) => /\b(card|cardholder|card member|card number|card no|last 4)\b/.test(h)) || (nh.includes('transaction date') && nh.includes('post date') && !f.includes('balance'));
+  if (ledger) { if (cardHeader) { s.card_statement += 3; why.push('card transaction layout'); } else { s.bank_statement += 2; why.push('transaction ledger layout (dated rows with amounts)'); } s.pnl -= 4; }
+  if (ledger && f.includes('debit') && f.includes('credit') && f.includes('category') && !f.includes('balance')) why.push('general-ledger debit/credit columns');
   if (headers.filter((h) => parseMonth(h)).length >= 3) { s.pnl += 6; why.push('month columns'); }
   if (/net income|total income|gross profit|profit and loss|income statement/.test(t)) s.pnl += 3;
-  const hint: Array<[RegExp, DocKind]> = [[/p ?& ?l|profit|income.?statement/, 'pnl'], [/bank|checking|savings/, 'bank_statement'], [/card|visa|amex|mastercard|discover/, 'card_statement'], [/invoice|\bar\b|a.r|aging|receivable/, 'invoices'], [/job/, 'job_costing'], [/payroll|wage/, 'payroll'], [/timesheet|time.?entr|time.?card/, 'timesheet'], [/marketing|advertis|ad.?spend|lead.?source/, 'marketing'], [/stripe|square|payout|processor|merchant|fees/, 'processor_fees'], [/receipt/, 'receipt'], [/notes?|memo|about/, 'business_notes']];
+  const hint: Array<[RegExp, DocKind]> = [[/p ?& ?l|profit|income.?statement/, 'pnl'], [/bank|checking|savings/, 'bank_statement'], [/card|visa|amex|mastercard|discover/, 'card_statement'], [/invoice|(^|[^a-z])a[\/&]?r([^a-z]|$)|aging|receivable/, 'invoices'], [/ledger|transaction|(^|[^a-z])gl([^a-z]|$)/, 'bank_statement'], [/job/, 'job_costing'], [/payroll|wage/, 'payroll'], [/timesheet|time.?entr|time.?card/, 'timesheet'], [/marketing|advertis|ad.?spend|lead.?source/, 'marketing'], [/stripe|square|payout|processor|merchant|fees/, 'processor_fees'], [/receipt/, 'receipt'], [/notes?|memo|about/, 'business_notes']];
   for (const [re, k] of hint) if (re.test(name)) { s[k] += 2; why.push(`file name suggests ${k.replace('_', ' ')}`); }
   if (/credit card|card ending|visa|mastercard|american express/.test(t)) s.card_statement += 2;
   if (/checking|savings account|bank statement|statement period/.test(t)) s.bank_statement += 2;
+  if (/payroll|gross pay|net pay|employer (cost|taxes)|pay date/.test(t)) s.payroll += 3;
   const ranked = (Object.entries(s) as Array<[DocKind, number]>).sort((a, b) => b[1] - a[1]);
   const [top, second] = ranked;
   const confidence = top[1] >= 5 && top[1] - second[1] >= 2 ? 0.9 : top[1] >= 4 && top[1] > second[1] ? 0.7 : top[1] >= 3 ? 0.5 : 0.2;
@@ -178,6 +192,7 @@ export function parseStatementLines(pages: string[][]): { rows: CanonicalRow[]; 
   pages.forEach((lines, p) => lines.forEach((line, n) => {
     const m = line.replace(/\s+/g, ' ').trim().match(LINE); if (!m) return;
     const desc = m[2].trim();
+    if ((desc.match(/\d[\d,]*\.\d{2}\b/g) || []).length >= 2) return; // multi-amount summary row (e.g. payroll by pay date), not a transaction
     const one = m[4] === undefined;
     const balance = one ? null : parseMoneyMinor(m[4]);
     if (/opening|beginning|previous|closing|ending|starting/i.test(desc) && /balance/i.test(desc)) { prevBalance = parseMoneyMinor(m[3]); return; }
@@ -191,4 +206,55 @@ export function parseStatementLines(pages: string[][]): { rows: CanonicalRow[]; 
       values: { date: parseAnyDate(m[1], year) ?? m[1], description: desc, amount: amountText, ...(m[4] ? { balance: m[4] } : {}) } });
   }));
   return { rows, year };
+}
+
+const MONTH_RE = '(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
+const MI: Record<string, number> = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const lastDay = (y: number, m: number) => new Date(Date.UTC(y, m, 0)).getUTCDate();
+
+/** Reporting period from a statement title, e.g. "January 1 - September 30, 2026", "Jan - Sep 2026", "October 2025 - September 2026", "September 2026". */
+export function parsePeriod(text: string): { start: string; end: string } | null {
+  const t = text.toLowerCase().replace(/,/g, ' ').replace(/\s+/g, ' ');
+  let m = t.match(/(\d{4})-(\d{2})-(\d{2}) (?:-|to|through|–) (\d{4})-(\d{2})-(\d{2})/);
+  if (m) return { start: `${m[1]}-${m[2]}-${m[3]}`, end: `${m[4]}-${m[5]}-${m[6]}` };
+  m = t.match(/(\d{1,2})\/(\d{1,2})\/(\d{4}) ?(?:-|to|through|–) ?(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return { start: `${m[3]}-${pad2(+m[1])}-${pad2(+m[2])}`, end: `${m[6]}-${pad2(+m[4])}-${pad2(+m[5])}` };
+  m = t.match(new RegExp(`${MONTH_RE}(?: \\d{1,2})?(?: (\\d{4}))? ?(?:-|to|through|–) ?${MONTH_RE}(?: (\\d{1,2}))?(?: (\\d{4}))`));
+  if (m) { const y2 = +m[5], m1 = MI[m[1].slice(0, 3)], m2 = MI[m[3].slice(0, 3)]; const y1 = m[2] ? +m[2] : m1 > m2 ? y2 - 1 : y2;
+    return { start: `${y1}-${pad2(m1)}-01`, end: `${y2}-${pad2(m2)}-${pad2(m[4] ? +m[4] : lastDay(y2, m2))}` }; }
+  m = t.match(new RegExp(`(?:^|[^a-z])${MONTH_RE} (\\d{4})(?![\\d/-])`));
+  if (m) { const y = +m[2], mo = MI[m[1].slice(0, 3)]; return { start: `${y}-${pad2(mo)}-01`, end: `${y}-${pad2(mo)}-${pad2(lastDay(y, mo))}` }; }
+  return null;
+}
+
+const PNL_MARKER = /^(total (income|revenue|sales)|gross profit|total (operating )?expenses?|net (operating )?(income|profit|loss)|total cost of (goods sold|sales))\b/i;
+
+/**
+ * Single-period P&L (accounts as rows, one amount column), e.g. a QuickBooks "Profit and Loss" export with a
+ * "Total" column. Detected by its subtotal lines; the reporting period comes from the title rows or a month header.
+ */
+export function singlePeriodPnl(sheet: string, grid: CellValue[][], locPrefix: string): { rows: CanonicalRow[]; period: { start: string; end: string } | null } | null {
+  const label = (r: CellValue[]) => String((r || []).find((c) => typeof c === 'string' && c.trim()) ?? '').trim();
+  const markers = grid.filter((r) => PNL_MARKER.test(label(r)) && (r || []).some((c) => parseMoneyMinor(c) !== null));
+  if (markers.length < 2) return null;
+  // Dated rows mean a transaction list, not a statement.
+  if (grid.filter((r) => (r || []).some((c) => typeof c === 'string' && /^\d{1,4}[-/]\d{1,2}[-/]\d{1,4}$/.test(c.trim()))).length >= 3) return null;
+  const headerIdx = grid.findIndex((r) => (r || []).some((c) => typeof c === 'string' && /^(total|amount|balance)$/i.test(c.trim()) || !!parseMonth(c)));
+  if (headerIdx >= 0 && (grid[headerIdx] || []).filter((c) => parseMonth(c)).length >= 3) return null; // wide P&L handled elsewhere
+  const colCounts = new Map<number, number>();
+  for (const r of markers) { const i = (r || []).map((c, j) => (parseMoneyMinor(c) !== null ? j : -1)).filter((j) => j > 0).pop(); if (i !== undefined) colCounts.set(i, (colCounts.get(i) || 0) + 1); }
+  const col = Array.from(colCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0]; if (col === undefined) return null;
+  const head = headerIdx >= 0 ? grid[headerIdx][col] : null; const headMonth = parseMonth(head);
+  const title = grid.slice(0, Math.max(headerIdx, 0) + 1).map((r) => (r || []).filter((c) => c !== null && c !== '').join(' ')).join(' \n ');
+  const period = headMonth ? parsePeriod(`${String(head)}`) : parsePeriod(title);
+  const out: CanonicalRow[] = []; let section = ''; let k = 0;
+  for (let r = headerIdx + 1; r < grid.length; r++) {
+    const row = grid[r] || []; const name = label(row); if (!name) continue;
+    const amount = row[col]; if (parseMoneyMinor(amount) === null) { section = sectionOf(name) || section; continue; }
+    const type = pnlLineType(name, section); if (type === 'subtotal') continue;
+    out.push({ index: k++, loc: `${locPrefix} row ${r + 1}, column ${String.fromCharCode(65 + col)}`, sheet, row: r + 1,
+      values: { ...(period ? { date: period.start, period_end: period.end } : {}), line: name, section: type, amount } });
+  }
+  return out.length ? { rows: out, period } : null;
 }

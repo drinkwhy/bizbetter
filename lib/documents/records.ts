@@ -5,7 +5,7 @@ import { parseAnyDate, parseMoneyMinor, parseNumber } from './parse';
 
 export const DOCUMENT_MAPPING_VERSION = 'document-ingest-1';
 const MONEY = new Set(['amount', 'debit', 'credit', 'balance', 'amount_paid', 'open_balance', 'revenue', 'labor_cost', 'material_cost', 'hourly_rate', 'gross_wages', 'overtime_pay', 'gross', 'fee', 'net', 'expenses', 'net_profit', 'spend']);
-const HOURS = new Set(['regular_hours', 'overtime_hours', 'labor_hours', 'billable_hours', 'nonbillable_hours', 'leads']);
+const HOURS = new Set(['regular_hours', 'overtime_hours', 'labor_hours', 'billable_hours', 'nonbillable_hours', 'leads', 'hours']);
 const yesNo = (v: unknown) => { const t = String(v ?? '').trim().toLowerCase(); if (!t) return null; if (/^(y|yes|true|1|x|callback|rework)$/.test(t)) return 'yes'; if (/^(n|no|false|0|-)$/.test(t)) return 'no'; return 'yes'; };
 const STOP = new Set(['the', 'inc', 'llc', 'co', 'monthly', 'subscription', 'payment', 'pmt', 'ach', 'autopay', 'pos', 'debit', 'purchase', 'online', 'www', 'com', 'recurring', 'card', 'sale']);
 /** Stable vendor key: lowercase words without reference numbers or filler words. */
@@ -29,9 +29,9 @@ export function documentToEvidence(doc: ExtractedDocument, opts: { businessId: s
   const warnings: string[] = []; const normalized: NormalizedBusinessRecord[] = []; const records: SourceRecord[] = [];
   const sourceSystem = `Document upload: ${meta.label}`; const currency = doc.currency || 'USD';
   const hasTotals = rows.some((r) => r.values.section === 'total_income');
-  // Card exports differ in sign convention: if most amounts are positive, positive = charge.
+  // Card exports differ in sign convention: if most amounts are positive (charges outnumber payments/refunds), positive = charge.
   const cardAmounts = kind === 'card_statement' ? rows.map((r) => parseMoneyMinor((r.values.amount ?? null) as CellValue)).filter((x): x is number => x !== null) : [];
-  const flip = kind === 'card_statement' && cardAmounts.length > 0 && cardAmounts.filter((x) => x > 0).length / cardAmounts.length > 0.7;
+  const flip = kind === 'card_statement' && cardAmounts.length > 0 && cardAmounts.filter((x) => x > 0).length / cardAmounts.length > 0.5;
   if (flip) warnings.push('Card amounts are positive for charges in this export; treated positive amounts as charges.');
   for (const r of rows) {
     const date = parseAnyDate((r.values.date ?? null) as CellValue); const due = parseAnyDate((r.values.due_date ?? null) as CellValue);
@@ -82,7 +82,8 @@ export function documentToEvidence(doc: ExtractedDocument, opts: { businessId: s
       case 'processor_fees': { const f = m('fee'); add('fees', f === null ? null : Math.abs(f)); add('payment_gross', m('gross')); add('payment_net', m('net')); break; }
       default: break;
     }
-    const periodStart = date, periodEnd = kind === 'pnl' && date.endsWith('-01') ? monthEnd(date) : date;
+    const pe = kind === 'pnl' ? parseAnyDate((r.values.period_end ?? null) as CellValue) : null;
+    const periodStart = date, periodEnd = pe && pe >= date ? pe : kind === 'pnl' && date.endsWith('-01') ? monthEnd(date) : date;
     for (let oi = 0; oi < out.length; oi++) { const o = out[oi];
       const sourceRecordId = `${doc.sha256.slice(0, 12)}:${r.index}:${o.metric}${out.findIndex((x) => x.metric === o.metric) === oi ? '' : ':' + oi}`;
       records.push({ id: createHash('sha256').update(JSON.stringify([opts.businessId, opts.importId, sourceRecordId, o.minor])).digest('hex'), businessId: opts.businessId, environment: 'REAL', sourceSystem, sourceRecordId, syncId: opts.importId,

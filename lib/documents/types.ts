@@ -26,7 +26,8 @@ export const DOC_KIND_IDS = Object.keys(DOC_KINDS) as DocKind[];
 export const CANONICAL_FIELDS = ['date', 'due_date', 'description', 'vendor', 'category', 'amount', 'debit', 'credit', 'balance', 'invoice_id', 'customer', 'amount_paid',
   'open_balance', 'status', 'job_id', 'job_type', 'revenue', 'labor_cost', 'material_cost', 'employee', 'regular_hours', 'overtime_hours', 'hourly_rate', 'gross_wages',
   'overtime_pay', 'gross', 'fee', 'net', 'expenses', 'net_profit', 'line', 'section', 'currency',
-  'technician', 'labor_hours', 'billable_hours', 'nonbillable_hours', 'lead_source', 'callback', 'spend', 'leads'] as const;
+  'technician', 'labor_hours', 'billable_hours', 'nonbillable_hours', 'lead_source', 'callback', 'spend', 'leads',
+  'hours', 'billable', 'period_end'] as const;
 export type CanonicalField = (typeof CANONICAL_FIELDS)[number];
 
 export type CellValue = string | number | null;

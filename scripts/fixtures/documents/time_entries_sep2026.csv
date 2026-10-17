@@ -1,0 +1,5 @@
+Date,Employee,Job ID,Activity,Billable,Clock In,Clock Out,Total Hours
+2026-09-01,Jake Lindgren,SHOP,Load van,N,07:30,08:12,0.7
+2026-09-01,Jake Lindgren,SVC-1001,Billable work,Y,08:12,11:30,3.3
+2026-09-01,Jake Lindgren,TRAVEL,Drive,N,11:30,12:00,0.5
+2026-09-01,Ana Reyes,SVC-1002,Billable work,Y,08:00,12:00,4.0

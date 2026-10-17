@@ -27,7 +27,7 @@ async function main() {
   assert.ok(appearsInText('2418.37', '09/08 FERGUSON SUPPLY -2,418.37 41,229.11')); assert.ok(!appearsInText('2418.73', '09/08 FERGUSON SUPPLY -2,418.37'));
   ok('money/date parsing rejects formulas, extra precision, impossible dates and missing years');
 
-  const files = (await fs.readdir(dir)).sort(); const docs: Record<string, ExtractedDocument> = {};
+  const files = (await fs.readdir(dir, { withFileTypes: true })).filter((e) => e.isFile()).map((e) => e.name).sort(); /* sub-folders such as statements/ are not part of this set */ const docs: Record<string, ExtractedDocument> = {};
   for (const f of files) docs[f] = await extract(f, await read(f));
   const expect: Record<string, [string, string, number]> = {
     'northstar_profit_and_loss_oct2025-sep2026.xlsx': ['xlsx', 'pnl', 0], 'northstar_bank_statement_sep2026.pdf': ['pdf', 'bank_statement', 20], 'northstar_credit_card_apr-sep2026.csv': ['csv', 'card_statement', 51],

@@ -1,0 +1,8 @@
+General Ledger (fictional)
+Date,Account,Reference,Description,Debit,Credit
+2026-07-01,Rent Expense,JE-101,July shop rent,"3,200.00",
+2026-07-01,Checking,JE-101,July shop rent,,"3,200.00"
+2026-07-05,Materials & Parts,BILL-88,Ferguson Supply,"1,940.55",
+2026-07-05,Accounts Payable,BILL-88,Ferguson Supply,,"1,940.55"
+2026-07-12,Checking,DEP-12,Customer payments,"8,400.00",
+2026-07-12,Service Revenue,DEP-12,Customer payments,,"8,400.00"

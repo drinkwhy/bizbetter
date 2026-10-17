@@ -1,0 +1,12 @@
+Live Test Co (fictional)
+Transaction Detail by Account
+"January - September, 2026"
+
+,Date,Transaction Type,Num,Name,Memo/Description,Account,Split,Amount,Balance
+Checking,,,,,,,,,
+,09/01/2026,Expense,1043,Ferguson Supply,Parts for J-2201,Checking,Materials & Parts,"-1,240.18","12,000.00"
+,09/03/2026,Deposit,,Stripe,Payout,Checking,Undeposited Funds,"4,812.33","16,812.33"
+,09/05/2026,Bill Payment (Check),1044,Prairie Insurance,Policy 7781,Checking,Accounts Payable,"-3,100.00","13,712.33"
+,09/09/2026,Expense,,Shell,Fuel,Checking,Fuel,-212.40,"13,499.93"
+Total for Checking,,,,,,,,"259.75",
+TOTAL,,,,,,,,"259.75",

@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
-import { checkPassword, createSessionToken, gateEnabled, safeNext, SESSION_COOKIE, verifySessionToken } from '@/lib/auth/session';
+import { authStatus, checkPassword, createSessionToken, gateEnabled, safeNext, SESSION_COOKIE, verifySessionToken } from '@/lib/auth/session';
 import { assertLocal, hostAllowed, originAllowed } from '@/lib/evidence/access';
 import { middleware } from '../middleware';
+import { POST as logout } from '../app/api/auth/logout/route';
 
 const req = (url: string, headers: Record<string, string> = {}) => new NextRequest(url, { headers });
 
@@ -16,6 +17,9 @@ async function main() {
   assert.equal(hostAllowed('bizbetter-test.up.railway.app'), false, 'public host refused without the gate');
   assert.throws(() => assertLocal(req('https://bizbetter-test.up.railway.app/api/evidence', { host: 'bizbetter-test.up.railway.app' })));
   assert.equal(await verifySessionToken('v1.9999999999.' + 'a'.repeat(64)), false);
+  assert.deepEqual(authStatus(), { gate: false, online: true }, 'hosted without the gate: no Sign out button, badge says Online');
+  delete process.env.RAILWAY_PUBLIC_DOMAIN; assert.deepEqual(authStatus(), { gate: false, online: false }, 'local dev: Local workspace badge, no Sign out');
+  process.env.RAILWAY_PUBLIC_DOMAIN = 'bizbetter-test.up.railway.app';
 
   process.env.BIZBETTER_ACCESS_PASSWORD = 'correct horse battery staple';
   assert.equal(gateEnabled(), true);
@@ -38,6 +42,12 @@ async function main() {
   r = await middleware(req(base + '/api/smart-analysis', { host, cookie: SESSION_COOKIE + '=forged' })); assert.equal(r.status, 401);
   assert.equal((await middleware(req(base + '/login', { host }))).headers.get('x-middleware-next'), '1');
   assert.equal((await middleware(req(base + '/api/auth/login', { host }))).headers.get('x-middleware-next'), '1');
+  assert.equal((await middleware(req(base + '/api/auth/status', { host }))).headers.get('x-middleware-next'), '1', 'header can read gate state before sign-in');
+  assert.deepEqual(authStatus(), { gate: true, online: true }, 'gate on: Sign out button shown, badge says Online');
+  // Sign out (header form POST): 303 to /login on the public host and the session cookie is cleared.
+  let out = await logout(req(base + '/api/auth/logout', { host, origin: base, 'x-forwarded-host': host, 'x-forwarded-proto': 'https', cookie: SESSION_COOKIE + '=' + token }));
+  assert.equal(out.status, 303); assert.equal(out.headers.get('location'), base + '/login'); assert.match(out.headers.get('set-cookie') || '', new RegExp(SESSION_COOKIE + '=;.*Max-Age=0', 'i'));
+  out = await logout(req(base + '/api/auth/logout', { host, origin: 'https://evil.example.com' })); assert.equal(out.status, 403, 'cross-site sign-out refused');
   assert.equal((await middleware(req(base + '/', { host, cookie: SESSION_COOKIE + '=' + token }))).headers.get('x-middleware-next'), '1');
 
   // Host and origin checks for the production host.

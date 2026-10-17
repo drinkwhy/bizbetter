@@ -46,10 +46,12 @@ export function runLeakEngines(input: { normalized: NormalizedBusinessRecord[]; 
     leaks.push({ category, label: LABEL[category][0], finding, recoverable: o.recoverable, basis: o.basis, details: o.details, causes: o.causes, step: LABEL[category][1] }); return true;
   };
 
+  // Rows from a single-period P&L spanning several months never count as one month.
+  const multiMonth = (r: NormalizedBusinessRecord) => { const pe = str(r.normalizedValues.period_end).slice(0, 7); return !!pe && pe !== str(r.normalizedValues.date).slice(0, 7); };
   // ---- P&L based: losing months and cost trends ----
   const pnl = of('pnl'); const monthly = new Map<string, NormalizedBusinessRecord>(); const income = new Map<string, number>(); const lines = new Map<string, Map<string, { v: number; row: NormalizedBusinessRecord }>>();
   for (const r of pnl) {
-    const d = str(r.normalizedValues.date).slice(0, 7); if (!/^\d{4}-\d{2}$/.test(d)) continue; const sec = str(r.normalizedValues.section); const v = cents(r.normalizedValues.amount);
+    const d = str(r.normalizedValues.date).slice(0, 7); if (!/^\d{4}-\d{2}$/.test(d)) continue; if (multiMonth(r)) continue; const sec = str(r.normalizedValues.section); const v = cents(r.normalizedValues.amount);
     if ((sec === 'net_income' || (!sec && cents(r.normalizedValues.net_profit) !== null)) && !monthly.has(d)) monthly.set(d, r);
     if (sec === 'total_income' && v !== null) income.set(d, v); else if (!sec && cents(r.normalizedValues.revenue) !== null) income.set(d, cents(r.normalizedValues.revenue)!);
     if (['expense', 'cogs', 'other_expense'].includes(sec) && v !== null) { const name = str(r.normalizedValues.line); const m = lines.get(name) || new Map(); m.set(d, { v, row: r }); lines.set(name, m); }
@@ -226,7 +228,7 @@ export function runLeakEngines(input: { normalized: NormalizedBusinessRecord[]; 
     if (ms.length < 8) check('revenue_trend', 'NOT_ENOUGH_DATA', `Needs at least 8 months of P&L income totals; ${ms.length} provided.`);
     else { const f3 = ms.slice(0, 3), l3 = ms.slice(-3); const a = f3.reduce((x, m) => x + income.get(m)!, 0), b = l3.reduce((x, m) => x + income.get(m)!, 0); const g = a > 0 ? (b - a) / a : 0;
       const hi = ms.reduce((x, m) => (income.get(m)! > income.get(x)! ? m : x)), lo = ms.reduce((x, m) => (income.get(m)! < income.get(x)! ? m : x));
-      const revRows = pnl.filter((r) => str(r.normalizedValues.section) === 'total_income' || (!str(r.normalizedValues.section) && cents(r.normalizedValues.revenue) !== null));
+      const revRows = pnl.filter((r) => !multiMonth(r) && str(r.normalizedValues.section) === 'total_income' || (!str(r.normalizedValues.section) && cents(r.normalizedValues.revenue) !== null));
       if (g > -0.10) check('revenue_trend', 'NONE_FOUND', `Revenue changed ${pct(g)} (first 3 vs last 3 of ${ms.length} months); highest ${hi} ${usd(income.get(hi)!)}, lowest ${lo} ${usd(income.get(lo)!)}.`);
       else { push('revenue_trend', { title: `Revenue down ${pct(-g)}: last 3 months vs first 3 months`, cited: cite(revRows.filter((r) => [...f3, ...l3].includes(str(r.normalizedValues.date).slice(0, 7))), ['revenue']), impact: a - b, formula: 'sum(revenue, first 3 months) - sum(revenue, last 3 months)', inputs: { months: ms.length }, basis: 'CALCULATED', recoverable: false,
           details: [`${f3.join(', ')}: ${usd(a)} total revenue; ${l3.join(', ')}: ${usd(b)}.`, `Highest month ${hi} ${usd(income.get(hi)!)}; lowest month ${lo} ${usd(income.get(lo)!)}.`, ...ms.map((m) => `${m} ${usd(income.get(m)!)}`)],

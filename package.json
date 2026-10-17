@@ -16,6 +16,7 @@
     "test:intake": "tsx scripts/verify-data-intake.ts",
     "test:ai": "tsx scripts/verify-ai-gateway.ts",
     "test:access": "tsx scripts/verify-access-gate.ts",
+    "test:ledger": "tsx scripts/verify-ledger-detection.ts",
     "start:prod": "prisma migrate deploy && next start -H 0.0.0.0 -p ${PORT:-3000}"
   },
   "dependencies": {

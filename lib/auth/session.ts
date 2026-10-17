@@ -50,3 +50,10 @@ export function safeNext(raw: string | null | undefined) {
   if (!raw || !raw.startsWith('/') || raw.startsWith('//') || raw.startsWith('/\\') || raw.startsWith('/login') || raw.length > 500) return '/';
   return raw;
 }
+
+/** Runtime gate state for the header (pages are prerendered, so it cannot be baked in at build time). No secrets. */
+export function authStatus() {
+  const gate = gateEnabled();
+  const hosted = Boolean(process.env.RAILWAY_PUBLIC_DOMAIN || process.env.RAILWAY_ENVIRONMENT || process.env.BIZBETTER_PUBLIC_HOSTS);
+  return { gate, online: gate || hosted };
+}

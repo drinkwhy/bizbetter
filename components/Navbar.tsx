@@ -9,7 +9,8 @@ import {
   HelpCircle, 
   RefreshCw,
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  LogOut
 } from 'lucide-react';
 import { SetupGuideModal } from './SetupGuideModal';
 import { readWalkthroughProgress } from '@/lib/walkthrough';
@@ -32,6 +33,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   useEffect(() => { const want = new URLSearchParams(window.location.search).get('businessId'); fetch('/api/intake/businesses', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((d) => { const list = (d?.businesses || []) as Array<{ id: string; name: string; industry?: string }>; const b = list.find((x) => x.id === want) || list[0]; if (b) setWs({ name: b.name, industry: b.industry }); }).catch(() => undefined); }, [pathname]);
   const businessName = ws?.name || fallbackName; const industry = ws ? ws.industry || 'Industry not set' : fallbackIndustry;
   const closeGuide = useCallback(() => setIsGuideOpen(false), []);
+  // Access-gate state comes from the server at runtime (null until known: nothing gate-specific renders).
+  const [auth, setAuth] = useState<{ gate: boolean; online: boolean } | null>(null);
+  useEffect(() => { fetch('/api/auth/status', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) setAuth({ gate: !!d.gate, online: !!d.online }); }).catch(() => undefined); }, []);
 
   useEffect(() => {
     if (!readWalkthroughProgress()) setIsGuideOpen(true);
@@ -66,10 +70,12 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Center Status: Production Real Business Badge & Setup Guide Trigger */}
             <div className="flex items-center space-x-3">
-              <div className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                <span>Local workspace</span>
-              </div>
+              {auth ? (
+                <div data-testid="workspace-badge" className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span>{auth.online ? 'Online' : 'Local workspace'}</span>
+                </div>
+              ) : null}
 
               <button
                 type="button"
@@ -108,6 +114,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Sparkles className="w-3.5 h-3.5 text-indigo-200" />
                 <span className="hidden sm:inline">Ask AI Analyst</span>
               </Link>
+
+              {auth?.gate ? (
+                <form method="post" action="/api/auth/logout">
+                  <button
+                    type="submit"
+                    title="Sign out of BizBetter"
+                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition-colors"
+                  >
+                    <LogOut className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Sign out</span>
+                  </button>
+                </form>
+              ) : null}
             </div>
           </div>
         </div>
