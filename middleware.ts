@@ -40,13 +40,22 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   if (
     path === '/login' ||
-    path.startsWith('/_next/') ||
-    path === '/favicon.ico' ||
-    path === '/bizbetter-icon.svg' ||
-    path === '/manifest.webmanifest' ||
     path === '/api/health' ||
     path === '/api/auth/login' ||
     path === '/api/auth/logout'
+  ) {
+    const response = NextResponse.next();
+    response.headers.set('Cache-Control', 'private, no-store');
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    return response;
+  }
+  if (
+    path.startsWith('/_next/') ||
+    path === '/favicon.ico' ||
+    path === '/bizbetter-icon.svg' ||
+    path === '/manifest.webmanifest'
   ) {
     return NextResponse.next();
   }
@@ -65,7 +74,12 @@ export async function middleware(request: NextRequest) {
   const headers = new Headers(request.headers);
   headers.delete('x-bizbetter-authenticated');
   headers.set('x-bizbetter-authenticated', '1');
-  return NextResponse.next({ request: { headers } });
+  const response = NextResponse.next({ request: { headers } });
+  response.headers.set('Cache-Control', 'private, no-store');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  return response;
 }
 
 export const config = {
