@@ -1,9 +1,10 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { dataDirectory } from '../storage/paths';
 import { createHash, randomUUID } from 'crypto';
 import { EvidenceDatabase, SourceRecord, Decision, LedgerItem, IntakeImport, NormalizedBusinessRecord, BusinessWorkspace } from './model';
 import { analyze, validateRecords, measuredResult, validDate, validateOpportunityOutcome, learnOutcomes } from './engine';
-const directory=path.join(process.cwd(),'.bizbetter-data');const filename=path.join(directory,'evidence-v1.json');
+const directory=dataDirectory();const filename=path.join(directory,'evidence-v1.json');
 const globalQueue=globalThis as unknown as {evidenceQueue?:Promise<unknown>};
 export const BUSINESS_ID='local-workspace';
 const empty=():EvidenceDatabase=>({version:1,businessId:BUSINESS_ID,records:[],decisions:[],ledger:[],audit:[],businesses:[{id:BUSINESS_ID,name:'My Business',createdAt:new Date().toISOString()}],imports:[],normalizedRecords:[]});
