@@ -30,6 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const closeGuide = useCallback(() => setIsGuideOpen(false), []);
 
   useEffect(() => {
+    if (window.location.pathname === '/login') return;
     if (!readWalkthroughProgress()) setIsGuideOpen(true);
   }, []);
 
