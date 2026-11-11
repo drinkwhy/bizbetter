@@ -1,0 +1,37 @@
+name: Private pilot checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [private-pilot-foundation]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate Prisma client
+        run: npx prisma generate
+      - name: Type check
+        run: npx tsc --noEmit
+      - name: Financial integrity
+        run: npm run test:integrity
+      - name: Integration evidence
+        run: npm run test:connections
+      - name: QBO security
+        run: npm run test:qbo-security
+      - name: Data intake
+        run: npm run test:intake
+      - name: AI gateway
+        run: npm run test:ai
+      - name: Demo engines
+        run: npm run test:demo
+      - name: Production build
+        run: npm run build

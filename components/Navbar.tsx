@@ -9,7 +9,8 @@ import {
   HelpCircle, 
   RefreshCw,
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  LogOut
 } from 'lucide-react';
 import { SetupGuideModal } from './SetupGuideModal';
 import { readWalkthroughProgress } from '@/lib/walkthrough';
@@ -29,6 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const closeGuide = useCallback(() => setIsGuideOpen(false), []);
 
   useEffect(() => {
+    if (window.location.pathname === '/login') return;
     if (!readWalkthroughProgress()) setIsGuideOpen(true);
   }, []);
 
@@ -103,6 +105,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Sparkles className="w-3.5 h-3.5 text-indigo-200" />
                 <span className="hidden sm:inline">Ask AI Analyst</span>
               </Link>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  try { await fetch('/api/auth/logout', { method: 'POST' }); } finally { window.location.assign('/login'); }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-800"
+                aria-label="Sign out"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Sign out</span>
+              </button>
             </div>
           </div>
         </div>
