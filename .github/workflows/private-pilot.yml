@@ -15,7 +15,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Generate Prisma client
@@ -32,5 +31,7 @@ jobs:
         run: npm run test:intake
       - name: AI gateway
         run: npm run test:ai
+      - name: Demo engines
+        run: npm run test:demo
       - name: Production build
         run: npm run build
