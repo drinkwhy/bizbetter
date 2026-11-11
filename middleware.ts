@@ -39,6 +39,7 @@ async function validSession(token: string | undefined) {
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   if (
+    path === '/login' ||
     path.startsWith('/_next/') ||
     path === '/favicon.ico' ||
     path === '/bizbetter-icon.svg' ||
