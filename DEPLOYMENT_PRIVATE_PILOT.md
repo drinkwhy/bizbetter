@@ -6,11 +6,11 @@ Deploy a single-user / trusted-team private workspace. Do not enable public sign
 
 ## Current deployment prerequisites
 
-- [ ] Implement and verify real application authentication for pages and every API route.
-- [ ] Replace the localhost-only request guard only after authentication is in place.
-- [ ] Add authorization checks to all data-changing API routes.
+- [ ] Run a security review of the new password sign-in, signed 8-hour HttpOnly session, and middleware coverage for every page/API route.
+- [ ] Configure `BIZBETTER_ADMIN_PASSWORD` (16+ characters) and `BIZBETTER_SESSION_SECRET` (32+ random characters) in the host secret manager.
+- [ ] Verify same-origin write protection and login throttling behind the actual reverse proxy.
+- [ ] Keep the single-owner private-pilot boundary; do not add public signup or multi-tenant access.
 - [ ] Configure a private access gateway (for example, Cloudflare Access) as a second perimeter, not as a replacement for app-level authentication.
-- [ ] Set a strong server-side session secret and admin credentials through the host's secret manager.
 - [ ] Configure a persistent volume and set `BIZBETTER_DATA_DIR` to its mount path.
 - [ ] Set `DATABASE_URL` to a persistent SQLite database path for the initial single-instance pilot.
 - [ ] Back up the existing `.bizbetter-data` directory before moving or deploying it.
@@ -64,10 +64,12 @@ The app now has a web app manifest and scalable SVG icon. Verify Android Chrome'
 
 ## Work completed on this branch
 
+- Added password-based private sign-in, an HMAC-signed 8-hour HttpOnly session, middleware protection for pages and API routes, and a sign-out control.
+- Updated the existing local-only API guard to accept only the trusted middleware marker for authenticated hosted requests.
 - Added `BIZBETTER_DATA_DIR` support for evidence storage, staged imports, and integration snapshots.
 - Added a lightweight no-store health endpoint.
 - Added the Next.js web app manifest and scalable icon.
 
 ## Not yet completed
 
-Authentication, API authorization, full QuickBooks historical sync, Toast API integration, database migration strategy, production secrets, hosting account configuration, and end-to-end deployment verification remain outstanding.
+Security review and end-to-end authentication tests, full QuickBooks historical sync, Toast API integration, database migration strategy, production secrets, hosting account configuration, and end-to-end deployment verification remain outstanding.
