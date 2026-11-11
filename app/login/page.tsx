@@ -29,7 +29,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-5">
+    <main className="fixed inset-0 z-[100] min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-5">
       <form onSubmit={submit} className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 p-7 shadow-2xl space-y-5">
         <div className="flex items-center gap-3">
           <div className="h-11 w-11 rounded-xl bg-emerald-600 flex items-center justify-center text-xl font-black">B</div>
