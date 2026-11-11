@@ -12,8 +12,8 @@ export function assertLocal(req: NextRequest, write = false) {
 
   if (write) {
     const origin = req.headers.get('origin');
-    const forwardedHost = req.headers.get('x-forwarded-host') || host;
-    const forwardedProto = req.headers.get('x-forwarded-proto') || req.nextUrl.protocol.replace(':', '');
+    const forwardedHost = (req.headers.get('x-forwarded-host') || host).split(',')[0].trim();
+    const forwardedProto = (req.headers.get('x-forwarded-proto') || req.nextUrl.protocol.replace(':', '')).split(',')[0].trim();
     if (origin && origin !== `${forwardedProto}://${forwardedHost}`) {
       throw new Error('Invalid request origin.');
     }
